@@ -7,6 +7,7 @@ import { conectToDB } from "./config/db.js";
 import { notFound, errorHanlder } from "./middlewares/errors.middleware.js";
 
 // Import routes
+import authRoutes from "./features/auth/routes/auth.route.js";
 
 // Express Usages
 dotenv.config();
@@ -32,6 +33,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Routes
+app.use("/api/auth", authRoutes);
 
 // Error Hander Middleware
 app.use(notFound);
