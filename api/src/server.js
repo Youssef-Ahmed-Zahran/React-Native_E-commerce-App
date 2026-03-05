@@ -8,6 +8,7 @@ import { notFound, errorHanlder } from "./middlewares/errors.middleware.js";
 
 // Import routes
 import authRoutes from "./features/auth/routes/auth.route.js";
+import userRoutes from "./features/user/routes/user.route.js";
 import wishlistRoutes from "./features/wishlist/routes/wishlist.route.js";
 
 // Express Usages
@@ -36,6 +37,8 @@ app.use(cors(corsOptions));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/users", userRoutes);
+
 // Error Hander Middleware
 app.use(notFound);
 app.use(errorHanlder);
