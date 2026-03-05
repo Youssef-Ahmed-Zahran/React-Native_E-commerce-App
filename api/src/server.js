@@ -8,6 +8,7 @@ import { notFound, errorHanlder } from "./middlewares/errors.middleware.js";
 
 // Import routes
 import authRoutes from "./features/auth/routes/auth.route.js";
+import wishlistRoutes from "./features/wishlist/routes/wishlist.route.js";
 
 // Express Usages
 dotenv.config();
@@ -34,7 +35,7 @@ app.use(cors(corsOptions));
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/wishlist", wishlistRoutes);
 // Error Hander Middleware
 app.use(notFound);
 app.use(errorHanlder);
