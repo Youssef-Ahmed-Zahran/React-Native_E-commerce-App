@@ -1,70 +1,88 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model.js";
-import asyncHandler from "express-async-handler";
+import { User } from "../features/user/models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
 
-export const verifyToken = asyncHandler(async (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   try {
-    let token;
-
-    // Read JWT from the 'jwt' cookie
-    token = req.cookies.jwt;
+    const token = req.cookies.jwt;
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized - No token provided." });
+      throw new ApiError(401, "Unauthorized - No token provided");
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     if (!decoded) {
-      return res.status(401).json({ error: "Unauthorized - Invalid Token" });
+      throw new ApiError(401, "Unauthorized - Invalid token");
     }
 
     const user = await User.findById(decoded.userId).select("-password");
-
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      throw new ApiError(404, "User not found");
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.log("Error in verifyToken middleware:", error.message);
-    res.status(500).json({ message: "Internal server error." });
+    next(error);
   }
-});
+};
 
 // Admin and user authorization
-export const verifyTokenAndAuthorization = asyncHandler(
-  async (req, res, next) => {
-    // First verify the token (this will set req.user)
-    await verifyToken(req, res, () => {
-      // Check if user is accessing their own resource or is an admin
-      if (
-        req.user._id.toString() === req.params.id ||
-        req.user.role === "admin"
-      ) {
-        next();
-      } else {
-        return res
-          .status(403)
-          .json({ error: "Forbidden - You can only access your own account." });
-      }
-    });
+export const verifyTokenAndAuthorization = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwt;
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized - No token provided");
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!decoded) {
+      throw new ApiError(401, "Unauthorized - Invalid token");
+    }
+
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user._id.toString() !== req.params.id && user.role !== "admin") {
+      throw new ApiError(403, "Forbidden - You can only access your own account");
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    next(error);
   }
-);
+};
 
 // Admin only
-export const verifyTokenAndAdmin = asyncHandler(async (req, res, next) => {
-  // First verify the token (this will set req.user)
-  await verifyToken(req, res, () => {
-    // Check if user is an admin
-    if (req.user.role === "admin") {
-      next();
-    } else {
-      return res
-        .status(403)
-        .json({ error: "Forbidden - Admin access required." });
+export const verifyTokenAndAdmin = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwt;
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized - No token provided");
     }
-  });
-});
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!decoded) {
+      throw new ApiError(401, "Unauthorized - Invalid token");
+    }
+
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    if (user.role !== "admin") {
+      throw new ApiError(403, "Forbidden - Admin access required");
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};

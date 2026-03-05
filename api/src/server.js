@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import { conectToDB } from "./config/db.js";
+import { notFound, errorHanlder } from "./middlewares/errors.middleware.js";
 
 // Import routes
 
@@ -31,9 +32,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Routes
-app.use("/", (req, res) => {
-  res.send("Working Successfully!");
-});
+
+// Error Hander Middleware
+app.use(notFound);
+app.use(errorHanlder);
 
 // Running the server
 const PORT = process.env.PORT || 8080;
