@@ -10,6 +10,7 @@ import { notFound, errorHanlder } from "./middlewares/errors.middleware.js";
 import authRoutes from "./features/auth/routes/auth.route.js";
 import userRoutes from "./features/user/routes/user.route.js";
 import wishlistRoutes from "./features/wishlist/routes/wishlist.route.js";
+import adminRoutes from "./features/admin/routes/admin.route.js";
 
 // Express Usages
 dotenv.config();
@@ -38,6 +39,7 @@ app.use(cors(corsOptions));
 app.use("/api/auth", authRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Error Hander Middleware
 app.use(notFound);
