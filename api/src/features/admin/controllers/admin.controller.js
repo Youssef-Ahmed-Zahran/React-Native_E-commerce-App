@@ -59,15 +59,19 @@ export const getAllProducts = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const search = req.query.search || "";
+    const category = req.query.category || "";
 
     let query = {};
+
     if (search) {
-      query = {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
-        ],
-      };
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (category) {
+      query.category = category;
     }
 
     const totalCount = await Product.countDocuments(query);
@@ -96,7 +100,6 @@ export const getAllProducts = async (req, res, next) => {
     next(error);
   }
 };
-
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
