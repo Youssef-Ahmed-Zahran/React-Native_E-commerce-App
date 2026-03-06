@@ -8,12 +8,14 @@ import { ApiResponse } from "../../../utils/ApiResponse.js";
 // @access  Private
 export const getCart = async (req, res, next) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id }).populate(
+    const cart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product"
     );
 
     if (!cart) {
-      cart = await Cart.create({ user: req.user._id, items: [] });
+      return res
+        .status(200)
+        .json(new ApiResponse(200, { items: [] }, "Cart is empty"));
     }
 
     return res
@@ -31,39 +33,39 @@ export const addToCart = async (req, res, next) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
-    if (!productId) {
-      throw new ApiError(400, "Product ID is required");
-    }
+    if (!productId) throw new ApiError(400, "Product ID is required");
 
     const product = await Product.findById(productId);
-    if (!product) {
-      throw new ApiError(404, "Product not found");
+    if (!product) throw new ApiError(404, "Product not found");
+    if (product.stock < quantity) {
+      throw new ApiError(400, `Insufficient stock for ${product.name}`);
     }
 
     let cart = await Cart.findOne({ user: req.user._id });
 
     if (!cart) {
-      cart = await Cart.create({ user: req.user._id, items: [] });
-    }
-
-    const cartItemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId
-    );
-
-    if (cartItemIndex > -1) {
-      // Item exists, update quantity
-      cart.items[cartItemIndex].quantity += quantity;
-      cart.items[cartItemIndex].price = product.price;
-    } else {
-      // Item does not exist, add to cart
-      cart.items.push({
-        product: productId,
-        quantity,
-        price: product.price,
+      cart = await Cart.create({
+        user: req.user._id,
+        items: [{ product: productId, quantity, price: product.price }],
       });
-    }
+    } else {
+      const cartItemIndex = cart.items.findIndex(
+        (item) => item.product.toString() === productId
+      );
 
-    await cart.save();
+      if (cartItemIndex > -1) {
+        const newQuantity = cart.items[cartItemIndex].quantity + quantity;
+        if (product.stock < newQuantity) {
+          throw new ApiError(400, `Only ${product.stock} items available`);
+        }
+        cart.items[cartItemIndex].quantity = newQuantity;
+        cart.items[cartItemIndex].price = product.price;
+      } else {
+        cart.items.push({ product: productId, quantity, price: product.price });
+      }
+
+      await cart.save();
+    }
 
     return res
       .status(201)
@@ -81,26 +83,25 @@ export const updateCartItem = async (req, res, next) => {
     const { productId } = req.params;
     const { quantity } = req.body;
 
-    if (!quantity || quantity < 1) {
+    if (!quantity || quantity < 1)
       throw new ApiError(400, "Valid quantity is required");
+
+    const product = await Product.findById(productId);
+    if (!product) throw new ApiError(404, "Product not found");
+    if (product.stock < quantity) {
+      throw new ApiError(400, `Only ${product.stock} items available`);
     }
 
     const cart = await Cart.findOne({ user: req.user._id });
-
-    if (!cart) {
-      throw new ApiError(404, "Cart not found");
-    }
+    if (!cart) throw new ApiError(404, "Cart not found");
 
     const cartItemIndex = cart.items.findIndex(
       (item) => item.product.toString() === productId
     );
-
-    if (cartItemIndex === -1) {
+    if (cartItemIndex === -1)
       throw new ApiError(404, "Product not found in cart");
-    }
 
     cart.items[cartItemIndex].quantity = quantity;
-
     await cart.save();
 
     return res
@@ -118,17 +119,13 @@ export const removeFromCart = async (req, res, next) => {
   try {
     const { productId } = req.params;
 
-    const cart = await Cart.findOne({ user: req.user._id });
-
-    if (!cart) {
-      throw new ApiError(404, "Cart not found");
-    }
-
-    cart.items = cart.items.filter(
-      (item) => item.product.toString() !== productId
+    const cart = await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { $pull: { items: { product: productId } } },
+      { new: true }
     );
 
-    await cart.save();
+    if (!cart) throw new ApiError(404, "Cart not found");
 
     return res
       .status(200)
@@ -143,14 +140,13 @@ export const removeFromCart = async (req, res, next) => {
 // @access  Private
 export const clearCart = async (req, res, next) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const cart = await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { items: [] },
+      { new: true }
+    );
 
-    if (!cart) {
-      throw new ApiError(404, "Cart not found");
-    }
-
-    cart.items = [];
-    await cart.save();
+    if (!cart) throw new ApiError(404, "Cart not found");
 
     return res
       .status(200)
