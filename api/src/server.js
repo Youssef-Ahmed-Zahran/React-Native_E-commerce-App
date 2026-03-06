@@ -12,6 +12,7 @@ import userRoutes from "./features/user/routes/user.route.js";
 import wishlistRoutes from "./features/wishlist/routes/wishlist.route.js";
 import adminRoutes from "./features/admin/routes/admin.route.js";
 import productRoutes from "./features/product/routes/product.route.js";
+import categoryRoutes from "./features/category/routes/category.route.js";
 
 // Express Usages
 dotenv.config();
@@ -42,6 +43,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // Error Hander Middleware
 app.use(notFound);
