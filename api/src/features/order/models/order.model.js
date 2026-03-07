@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { nanoid } from "nanoid";
 
 const orderItemSchema = new mongoose.Schema({
   product: {
@@ -24,18 +25,25 @@ const shippingAddressSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    orderNumber: { type: String, unique: true },
+    orderNumber: {
+      type: String,
+      unique: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     items: [orderItemSchema],
-    shippingAddress: { type: shippingAddressSchema, required: true },
+    shippingAddress: {
+      type: shippingAddressSchema,
+      required: true,
+    },
     paymentMethod: {
       type: String,
       required: true,
-      enum: ["credit_card", "paypal", "stripe", "cash_on_delivery"],
+      enum: ["stripe"],
+      default: "stripe",
     },
     paymentResult: {
       id: { type: String },
@@ -54,7 +62,11 @@ const orderSchema = new mongoose.Schema(
     shippedAt: { type: Date },
     deliveredAt: { type: Date },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 orderSchema.virtual("isPaid").get(function () {
@@ -70,10 +82,7 @@ orderSchema.index({ orderStatus: 1 });
 
 orderSchema.pre("validate", async function () {
   if (!this.orderNumber) {
-    this.orderNumber = `ORD-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 5)
-      .toUpperCase()}`;
+    this.orderNumber = `ORD-${nanoid(10).toUpperCase()}`;
   }
 });
 
