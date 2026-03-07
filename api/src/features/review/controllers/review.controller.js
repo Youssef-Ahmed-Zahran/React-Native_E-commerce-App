@@ -5,7 +5,6 @@ import { ApiError } from "../../../utils/ApiError.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 
 /**
- * @desc    Create a new review (product or order)
  * @route   POST /api/reviews
  * @access  Private
  */
