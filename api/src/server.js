@@ -16,6 +16,7 @@ import categoryRoutes from "./features/category/routes/category.route.js";
 import cartRoutes from "./features/cart/routes/cart.route.js";
 import paymentRoutes from "./features/payment/routes/payment.route.js";
 import orderRoutes from "./features/order/routes/order.route.js";
+import reviewRoutes from "./features/review/routes/review.route.js";
 
 // Express Usages
 dotenv.config();
@@ -50,6 +51,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Error Hander Middleware
 app.use(notFound);
