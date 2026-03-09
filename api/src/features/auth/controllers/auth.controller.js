@@ -51,6 +51,7 @@ export const register = async (req, res, next) => {
           name: user.name,
           email: user.email,
           imageUrl: user.imageUrl,
+          role: user.role,
         },
         "User registered successfully"
       )
@@ -95,6 +96,7 @@ export const login = async (req, res, next) => {
           name: user.name,
           email: user.email,
           imageUrl: user.imageUrl,
+          role: user.role,
         },
         "Logged in successfully"
       )
@@ -143,6 +145,7 @@ export const getCurrentUser = async (req, res, next) => {
           imageUrl: user.imageUrl,
           addresses: user.addresses,
           wishlist: user.wishlist,
+          role: user.role,
         },
         "User fetched successfully"
       )
