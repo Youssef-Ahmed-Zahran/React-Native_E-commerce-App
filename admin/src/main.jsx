@@ -18,17 +18,11 @@ createRoot(document.getElementById("root")).render(
         },
         success: {
           duration: 3000,
-          iconTheme: {
-            primary: "#10b981",
-            secondary: "#fff",
-          },
+          iconTheme: { primary: "#10b981", secondary: "#fff" },
         },
         error: {
           duration: 4000,
-          iconTheme: {
-            primary: "#ef4444",
-            secondary: "#fff",
-          },
+          iconTheme: { primary: "#ef4444", secondary: "#fff" },
         },
       }}
     />
