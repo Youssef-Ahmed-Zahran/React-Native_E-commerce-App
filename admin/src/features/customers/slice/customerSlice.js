@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../lib/axios";
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
@@ -16,9 +16,15 @@ const fetchCustomers = async (params) => {
 
 // ─── React Query Hooks ────────────────────────────────────────────────────────
 export const useCustomers = (params = {}) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: customerKeys.list(params),
-    queryFn: () => fetchCustomers(params),
-    keepPreviousData: true, // Keep showing previous data while fetching new page/search
+    queryFn: ({ pageParam = 1 }) => fetchCustomers({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.pagination?.page < lastPage?.pagination?.totalPages) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
   });
 };

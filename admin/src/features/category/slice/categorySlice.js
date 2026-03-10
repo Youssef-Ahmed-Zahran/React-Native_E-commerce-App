@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../../lib/axios";
 import toast from "react-hot-toast";
 
@@ -39,10 +39,16 @@ const deleteCategory = async (id) => {
 // ─── React Query Hooks ────────────────────────────────────────────────────────
 
 export const useCategories = (params = {}) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: categoryKeys.list(params),
-    queryFn: () => fetchCategories(params),
-    keepPreviousData: true,
+    queryFn: ({ pageParam = 1 }) => fetchCategories({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.pagination?.page < lastPage?.pagination?.totalPages) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
   });
 };
 

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../../lib/axios";
 import toast from "react-hot-toast";
 
@@ -44,10 +44,16 @@ const deleteProduct = async (id) => {
 // ─── React Query Hooks ────────────────────────────────────────────────────────
 
 export const useProducts = (params = {}) => {
-    return useQuery({
+    return useInfiniteQuery({
         queryKey: productKeys.list(params),
-        queryFn: () => fetchProducts(params),
-        keepPreviousData: true,
+        queryFn: ({ pageParam = 1 }) => fetchProducts({ ...params, page: pageParam }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            if (lastPage?.pagination?.page < lastPage?.pagination?.totalPages) {
+                return lastPage.pagination.page + 1;
+            }
+            return undefined;
+        },
     });
 };
 
