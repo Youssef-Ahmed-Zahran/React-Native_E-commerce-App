@@ -1,21 +1,27 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCreateCategory } from '../slice/categorySlice';
-import { Upload, X, ArrowLeft, Loader2, Image as ImageIcon } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCreateCategory } from "../slice/categorySlice";
+import {
+  Upload,
+  X,
+  ArrowLeft,
+  Loader2,
+  Image as ImageIcon,
+} from "lucide-react";
 
 function CreateCategory() {
   const navigate = useNavigate();
   const createMutation = useCreateCategory();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file");
         return;
       }
 
@@ -34,7 +40,7 @@ function CreateCategory() {
 
   const removeImage = () => {
     setImage(null);
-    setImagePreview('');
+    setImagePreview("");
   };
 
   const handleSubmit = (e) => {
@@ -45,7 +51,7 @@ function CreateCategory() {
       { name, image },
       {
         onSuccess: () => {
-          navigate('/categories'); // adjust as per your routing setup
+          navigate("/categories"); // adjust as per your routing setup
         },
       }
     );
@@ -54,7 +60,6 @@ function CreateCategory() {
   return (
     <div className="flex-1 p-8 pt-10 min-h-screen bg-slate-50/50">
       <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -64,8 +69,12 @@ function CreateCategory() {
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">Create Category</h2>
-            <p className="text-slate-500 mt-1">Add a new category for your products.</p>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+              Create Category
+            </h2>
+            <p className="text-slate-500 mt-1">
+              Add a new category for your products.
+            </p>
           </div>
         </div>
 
@@ -73,10 +82,12 @@ function CreateCategory() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
           <form onSubmit={handleSubmit} className="p-8">
             <div className="space-y-8">
-
               {/* Name Input */}
               <div>
-                <label htmlFor="name" className="block text-sm font-bold text-slate-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-bold text-slate-700 mb-2"
+                >
                   Category Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -101,8 +112,12 @@ function CreateCategory() {
                     <div className="p-4 bg-white rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
                       <Upload className="w-8 h-8 text-indigo-500" />
                     </div>
-                    <p className="text-sm font-semibold text-slate-600">Click to upload or drag and drop</p>
-                    <p className="text-xs text-slate-400 mt-1">PNG, JPG, WEBP up to 5MB</p>
+                    <p className="text-sm font-semibold text-slate-600">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      PNG, JPG, WEBP up to 5MB
+                    </p>
                     <input
                       type="file"
                       className="hidden"
@@ -152,7 +167,7 @@ function CreateCategory() {
                     Creating...
                   </>
                 ) : (
-                  'Create Category'
+                  "Create Category"
                 )}
               </button>
             </div>

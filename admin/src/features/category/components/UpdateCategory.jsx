@@ -1,28 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useUpdateCategory, useCategories } from '../slice/categorySlice';
-import { Upload, X, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useUpdateCategory, useCategories } from "../slice/categorySlice";
+import {
+  Upload,
+  X,
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  Edit2,
+} from "lucide-react";
 
 function UpdateCategory() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Since we don't have a specific getCategoryById backend route, we fetch the list 
-  // and extract the one we need. Assuming it'll be in the first page normally, 
-  // or you could set limits high for this query specifically.
   const { data, isLoading } = useCategories({ limit: 100 });
   const updateMutation = useUpdateCategory();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [image, setImage] = useState(null); // Will hold base64 if changed
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => {
     if (data?.categories) {
-      const category = data.categories.find(c => c._id === id);
+      const category = data.categories.find((c) => c._id === id);
       if (category) {
-        setName(category.name || '');
-        setImagePreview(category.image || '');
+        setName(category.name || "");
+        setImagePreview(category.image || "");
       }
     }
   }, [data, id]);
@@ -30,8 +34,8 @@ function UpdateCategory() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file");
         return;
       }
 
@@ -50,7 +54,7 @@ function UpdateCategory() {
 
   const removeImage = () => {
     setImage(null);
-    setImagePreview('');
+    setImagePreview("");
   };
 
   const handleSubmit = (e) => {
@@ -58,7 +62,7 @@ function UpdateCategory() {
     if (!name.trim()) return;
 
     // Only send the image if it was modified (i.e. we have base64)
-    // Otherwise the backend controller retains the existing one 
+    // Otherwise the backend controller retains the existing one
     const payload = { name };
     if (image) {
       payload.image = image;
@@ -82,7 +86,7 @@ function UpdateCategory() {
     );
   }
 
-  if (!data?.categories?.find(c => c._id === id)) {
+  if (!data?.categories?.find((c) => c._id === id)) {
     return (
       <div className="flex-1 p-8 pt-10 min-h-screen bg-slate-50/50 flex items-center justify-center">
         <div className="bg-red-50/80 backdrop-blur-sm text-red-600 p-8 rounded-2xl shadow-lg border border-red-100 flex flex-col items-center">
@@ -90,7 +94,7 @@ function UpdateCategory() {
           <h3 className="text-xl font-bold mb-2">Category Not Found</h3>
           <p>The category you are trying to edit does not exist.</p>
           <button
-            onClick={() => navigate('/categories')}
+            onClick={() => navigate("/categories")}
             className="mt-6 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 font-medium"
           >
             Back to Categories
@@ -103,7 +107,6 @@ function UpdateCategory() {
   return (
     <div className="flex-1 p-8 pt-10 min-h-screen bg-slate-50/50">
       <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -113,8 +116,12 @@ function UpdateCategory() {
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">Edit Category</h2>
-            <p className="text-slate-500 mt-1">Update details for this category.</p>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+              Edit Category
+            </h2>
+            <p className="text-slate-500 mt-1">
+              Update details for this category.
+            </p>
           </div>
         </div>
 
@@ -122,10 +129,12 @@ function UpdateCategory() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
           <form onSubmit={handleSubmit} className="p-8">
             <div className="space-y-8">
-
               {/* Name Input */}
               <div>
-                <label htmlFor="name" className="block text-sm font-bold text-slate-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-bold text-slate-700 mb-2"
+                >
                   Category Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -150,8 +159,12 @@ function UpdateCategory() {
                     <div className="p-4 bg-white rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
                       <Upload className="w-8 h-8 text-indigo-500" />
                     </div>
-                    <p className="text-sm font-semibold text-slate-600">Click to upload or drag and drop</p>
-                    <p className="text-xs text-slate-400 mt-1">PNG, JPG, WEBP up to 5MB</p>
+                    <p className="text-sm font-semibold text-slate-600">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      PNG, JPG, WEBP up to 5MB
+                    </p>
                     <input
                       type="file"
                       className="hidden"
@@ -169,7 +182,12 @@ function UpdateCategory() {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <label className="p-3 bg-white hover:bg-slate-100 text-indigo-600 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all cursor-pointer">
                         <Edit2 className="w-5 h-5" />
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
                       </label>
                       <button
                         type="button"
@@ -205,7 +223,7 @@ function UpdateCategory() {
                     Saving...
                   </>
                 ) : (
-                  'Save Changes'
+                  "Save Changes"
                 )}
               </button>
             </div>
@@ -215,8 +233,5 @@ function UpdateCategory() {
     </div>
   );
 }
-
-// Need to import Edit2 since we used it in the UI overlay
-import { Edit2 } from 'lucide-react';
 
 export default UpdateCategory;
