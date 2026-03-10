@@ -13,6 +13,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../controllers/admin.controller.js";
+import { getProductById } from "../../product/controllers/product.controller.js";
 import { verifyTokenAndAdmin } from "../../../middlewares/verifyToken.middleware.js";
 
 const router = Router();
@@ -22,6 +23,7 @@ router.use(verifyTokenAndAdmin);
 
 router.post("/products", createProduct);
 router.get("/products", getAllProducts);
+router.get("/products/:id", getProductById);
 router.put("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
 

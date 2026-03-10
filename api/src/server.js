@@ -28,8 +28,8 @@ conectToDB();
 const app = express();
 
 //Apply Middlewares
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
 app.use(helmet());
 const corsOptions = {

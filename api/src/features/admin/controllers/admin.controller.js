@@ -112,10 +112,11 @@ export const updateProduct = async (req, res, next) => {
 
     let updatedImages = product.images;
 
-    if (images && images.length > 0) {
+    if (images !== undefined) {
+      const imagesArray = Array.isArray(images) ? images : [];
       // images can be a mix of updated base64 strings and existing URLs
-      const base64Images = images.filter((img) => img.startsWith("data:image"));
-      const existingUrls = images.filter((img) => img.startsWith("http"));
+      const base64Images = imagesArray.filter((img) => img.startsWith("data:image"));
+      const existingUrls = imagesArray.filter((img) => img.startsWith("http"));
 
       let newlyUploaded = [];
       if (base64Images.length > 0) {
