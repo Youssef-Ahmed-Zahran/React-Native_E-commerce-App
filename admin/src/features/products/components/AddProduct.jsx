@@ -10,20 +10,34 @@ import {
   Image as ImageIcon,
   Plus,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { productSchema } from "../../../validation/product";
 
 function AddProduct() {
   const navigate = useNavigate();
   const createMutation = useCreateProduct();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState("");
-
-  const { data: categoryData, isLoading: categoriesLoading } = useCategories({ limit: 100 });
+  const { data: categoryData, isLoading: categoriesLoading } = useCategories({
+    limit: 100,
+  });
   const [images, setImages] = useState([]); // base64 strings
   const [imagePreviews, setImagePreviews] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: "",
+      stock: "",
+      category: "",
+    },
+  });
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -51,17 +65,14 @@ function AddProduct() {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name.trim() || !price) return;
-
+  const onSubmit = (data) => {
     createMutation.mutate(
       {
-        name,
-        description,
-        price: Number(price),
-        stock: Number(stock),
-        category,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        stock: data.stock,
+        category: data.category,
         images,
       },
       {
@@ -79,6 +90,7 @@ function AddProduct() {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
+            type="button"
             className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
@@ -95,7 +107,7 @@ function AddProduct() {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-8">
             <div className="space-y-6">
               {/* Name */}
               <div>
@@ -108,12 +120,17 @@ function AddProduct() {
                 <input
                   type="text"
                   id="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register("name")}
                   placeholder="e.g. Wireless Headphones..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                    errors.name ? "border-red-500" : "border-slate-200"
+                  }`}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -127,11 +144,17 @@ function AddProduct() {
                 <textarea
                   id="description"
                   rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  {...register("description")}
                   placeholder="Product description..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none ${
+                    errors.description ? "border-red-500" : "border-slate-200"
+                  }`}
                 />
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
 
               {/* Price & Stock */}
@@ -146,14 +169,18 @@ function AddProduct() {
                   <input
                     type="number"
                     id="price"
-                    required
-                    min="0"
                     step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    {...register("price")}
                     placeholder="0.00"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                      errors.price ? "border-red-500" : "border-slate-200"
+                    }`}
                   />
+                  {errors.price && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.price.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -165,12 +192,17 @@ function AddProduct() {
                   <input
                     type="number"
                     id="stock"
-                    min="0"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
+                    {...register("stock")}
                     placeholder="0"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                      errors.stock ? "border-red-500" : "border-slate-200"
+                    }`}
                   />
+                  {errors.stock && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.stock.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -180,17 +212,20 @@ function AddProduct() {
                   htmlFor="category"
                   className="block text-sm font-bold text-slate-700 mb-2"
                 >
-                  Category
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  {...register("category")}
                   disabled={categoriesLoading}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer ${
+                    errors.category ? "border-red-500" : "border-slate-200"
+                  }`}
                 >
                   <option value="">
-                    {categoriesLoading ? "Loading categories..." : "Select a category"}
+                    {categoriesLoading
+                      ? "Loading categories..."
+                      : "Select a category"}
                   </option>
                   {categoryData?.categories?.map((cat) => (
                     <option key={cat._id} value={cat._id}>
@@ -198,6 +233,11 @@ function AddProduct() {
                     </option>
                   ))}
                 </select>
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
               </div>
 
               {/* Image Upload */}
@@ -266,7 +306,7 @@ function AddProduct() {
               </button>
               <button
                 type="submit"
-                disabled={createMutation.isPending || !name.trim() || !price}
+                disabled={createMutation.isPending}
                 className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2"
               >
                 {createMutation.isPending ? (

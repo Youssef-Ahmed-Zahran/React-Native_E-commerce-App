@@ -10,37 +10,48 @@ import {
   AlertCircle,
   Edit2,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { productSchema } from "../../../validation/product";
 
 function UpdateProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data, isLoading } = useProducts({ limit: 100 });
-  const { data: categoryData, isLoading: categoriesLoading } = useCategories({ limit: 100 });
+  const { data: categoryData, isLoading: categoriesLoading } = useCategories({
+    limit: 100,
+  });
   const updateMutation = useUpdateProduct();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState("");
-  const [images, setImages] = useState([]); // new base64 strings (if changed)
+  const [images, setImages] = useState([]); // new base64 strings
   const [imagePreviews, setImagePreviews] = useState([]); // existing or new
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(productSchema),
+  });
 
   // Pre-fill form from fetched data
   useEffect(() => {
     if (data?.products) {
       const product = data.products.find((p) => p._id === id);
       if (product) {
-        setName(product.name || "");
-        setDescription(product.description || "");
-        setPrice(product.price?.toString() || "");
-        setStock(product.stock?.toString() || "");
-        setCategory(product.category?._id || product.category || "");
+        reset({
+          name: product.name || "",
+          description: product.description || "",
+          price: product.price?.toString() || "",
+          stock: product.stock?.toString() || "",
+          category: product.category?._id || product.category || "",
+        });
         setImagePreviews(product.images || []);
       }
     }
-  }, [data, id]);
+  }, [data, id, reset]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -63,11 +74,8 @@ function UpdateProduct() {
 
   const removeImage = (index) => {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-    // If it was an existing URL (not a newly-added base64), we keep images array intact
-    // Only remove from new images array if it's a base64
     if (imagePreviews[index]?.startsWith("blob:")) {
       setImages((prev) => {
-        // find which blob index this corresponds to
         const blobIndices = imagePreviews.reduce((acc, p, i) => {
           if (p.startsWith("blob:")) acc.push(i);
           return acc;
@@ -79,20 +87,19 @@ function UpdateProduct() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name.trim() || !price) return;
-
+  const onSubmit = (formData) => {
     const payload = {
-      name,
-      description,
-      price: Number(price),
-      stock: Number(stock),
-      category,
+      name: formData.name,
+      description: formData.description,
+      price: formData.price,
+      stock: formData.stock,
+      category: formData.category,
     };
 
     // Combine existing URLs and new base64 images
-    const existingUrls = imagePreviews.filter(img => typeof img === 'string' && img.startsWith('http'));
+    const existingUrls = imagePreviews.filter(
+      (img) => typeof img === "string" && img.startsWith("http")
+    );
     payload.images = [...existingUrls, ...images];
 
     updateMutation.mutate(
@@ -139,6 +146,7 @@ function UpdateProduct() {
           <button
             onClick={() => navigate(-1)}
             className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
+            type="button"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
@@ -154,7 +162,7 @@ function UpdateProduct() {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-8">
             <div className="space-y-6">
               {/* Name */}
               <div>
@@ -167,12 +175,17 @@ function UpdateProduct() {
                 <input
                   type="text"
                   id="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register("name")}
                   placeholder="e.g. Wireless Headphones..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                    errors.name ? "border-red-500" : "border-slate-200"
+                  }`}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -186,11 +199,17 @@ function UpdateProduct() {
                 <textarea
                   id="description"
                   rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  {...register("description")}
                   placeholder="Product description..."
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none ${
+                    errors.description ? "border-red-500" : "border-slate-200"
+                  }`}
                 />
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
 
               {/* Price & Stock */}
@@ -205,14 +224,18 @@ function UpdateProduct() {
                   <input
                     type="number"
                     id="price"
-                    required
-                    min="0"
                     step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    {...register("price")}
                     placeholder="0.00"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                      errors.price ? "border-red-500" : "border-slate-200"
+                    }`}
                   />
+                  {errors.price && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.price.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -224,12 +247,17 @@ function UpdateProduct() {
                   <input
                     type="number"
                     id="stock"
-                    min="0"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
+                    {...register("stock")}
                     placeholder="0"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium"
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
+                      errors.stock ? "border-red-500" : "border-slate-200"
+                    }`}
                   />
+                  {errors.stock && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.stock.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -239,17 +267,20 @@ function UpdateProduct() {
                   htmlFor="category"
                   className="block text-sm font-bold text-slate-700 mb-2"
                 >
-                  Category
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  {...register("category")}
                   disabled={categoriesLoading}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer ${
+                    errors.category ? "border-red-500" : "border-slate-200"
+                  }`}
                 >
                   <option value="">
-                    {categoriesLoading ? "Loading categories..." : "Select a category"}
+                    {categoriesLoading
+                      ? "Loading categories..."
+                      : "Select a category"}
                   </option>
                   {categoryData?.categories?.map((cat) => (
                     <option key={cat._id} value={cat._id}>
@@ -257,6 +288,11 @@ function UpdateProduct() {
                     </option>
                   ))}
                 </select>
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
               </div>
 
               {/* Images */}
@@ -324,7 +360,7 @@ function UpdateProduct() {
               </button>
               <button
                 type="submit"
-                disabled={updateMutation.isPending || !name.trim() || !price}
+                disabled={updateMutation.isPending}
                 className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2"
               >
                 {updateMutation.isPending ? (
