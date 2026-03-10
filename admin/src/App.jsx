@@ -9,6 +9,7 @@ import Dashboard from "./features/dashboard/pages/Dashboard";
 import Products from "./features/products/pages/Products";
 import AddProduct from "./features/products/components/AddProduct";
 import UpdateProduct from "./features/products/components/UpdateProduct";
+import ProductDetails from "./features/products/components/ProductDetails";
 import Category from "./features/category/pages/Category";
 import CreateCategory from "./features/category/components/CreateCategory";
 import UpdateCategory from "./features/category/components/UpdateCategory";
@@ -48,8 +49,9 @@ function App() {
               <Route path="/customers" element={<Customers />} />
 
               <Route path="/products" element={<Products />} />
-              <Route path="/products/add" element={<AddProduct />} />
+              <Route path="/products/create" element={<AddProduct />} />
               <Route path="/products/edit/:id" element={<UpdateProduct />} />
+              <Route path="/products/:id" element={<ProductDetails />} />
 
               <Route path="/categories" element={<Category />} />
               <Route path="/categories/create" element={<CreateCategory />} />
