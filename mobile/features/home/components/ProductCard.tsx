@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -34,14 +35,32 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleToggleFavorite = () => {
     if (isFavorite) {
-      removeFromWishlist(product._id);
+      removeFromWishlist(product._id, {
+        onSuccess: () =>
+          Alert.alert("Wishlist", `"${product.name}" removed from wishlist.`),
+        onError: () =>
+          Alert.alert("Error", "Failed to remove from wishlist. Please try again."),
+      });
     } else {
-      addToWishlist(product._id);
+      addToWishlist(product._id, {
+        onSuccess: () =>
+          Alert.alert("Wishlist", `"${product.name}" added to wishlist! ❤️`),
+        onError: () =>
+          Alert.alert("Error", "Failed to add to wishlist. Please try again."),
+      });
     }
   };
 
   const handleAddToCart = () => {
-    addToCart({ productId: product._id, quantity: 1 });
+    addToCart(
+      { productId: product._id, quantity: 1 },
+      {
+        onSuccess: () =>
+          Alert.alert("Cart", `"${product.name}" added to cart! 🛒`),
+        onError: () =>
+          Alert.alert("Error", "Failed to add to cart. Please try again."),
+      }
+    );
   };
 
   const hasDiscount =
