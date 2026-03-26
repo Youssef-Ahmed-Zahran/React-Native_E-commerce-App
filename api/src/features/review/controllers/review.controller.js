@@ -1,6 +1,5 @@
 import { Review } from "../models/review.model.js";
 import { Product } from "../../product/models/product.model.js";
-import { Order } from "../../order/models/order.model.js";
 import { ApiError } from "../../../utils/ApiError.js";
 import { ApiResponse } from "../../../utils/ApiResponse.js";
 
@@ -10,25 +9,14 @@ import { ApiResponse } from "../../../utils/ApiResponse.js";
  */
 export const createReview = async (req, res, next) => {
   try {
-    const { productId, reviewType, orderId, rating, comment } = req.body;
+    const { productId, rating, comment } = req.body;
     const userId = req.user._id;
 
     // Validate product exists
     const product = await Product.findById(productId);
     if (!product) throw new ApiError(404, "Product not found");
 
-    // If order review, validate orderId is provided and belongs to user
-    if (reviewType === "order") {
-      if (!orderId)
-        throw new ApiError(400, "orderId is required for order reviews");
 
-      const order = await Order.findById(orderId);
-      if (!order) throw new ApiError(404, "Order not found");
-
-      if (order.user.toString() !== userId.toString()) {
-        throw new ApiError(403, "You are not authorized to review this order");
-      }
-    }
 
     // Check for duplicate review (unique index: productId + userId)
     const existingReview = await Review.findOne({ productId, userId });
@@ -38,10 +26,8 @@ export const createReview = async (req, res, next) => {
     const review = await Review.create({
       productId,
       userId,
-      reviewType,
-      orderId: reviewType === "order" ? orderId : undefined,
       rating,
-      comment: reviewType === "product" ? comment : undefined,
+      comment,
     });
 
     return res
@@ -69,7 +55,7 @@ export const getProductReviews = async (req, res, next) => {
 
     const [reviews, total] = await Promise.all([
       Review.find({ productId })
-        .populate("userId", "username email")
+        .populate("userId", "name email")
         .sort("-createdAt")
         .skip(skip)
         .limit(limit),
@@ -162,15 +148,8 @@ export const updateReview = async (req, res, next) => {
       throw new ApiError(403, "You are not authorized to update this review");
     }
 
-    // Order reviews cannot have a comment
-    if (review.reviewType === "order" && comment) {
-      throw new ApiError(400, "Order reviews cannot include a comment");
-    }
-
     if (rating !== undefined) review.rating = rating;
-    if (comment !== undefined && review.reviewType === "product") {
-      review.comment = comment;
-    }
+    if (comment !== undefined) review.comment = comment;
 
     await review.save();
 
@@ -194,7 +173,7 @@ export const deleteReview = async (req, res, next) => {
     const review = await Review.findById(req.params.id);
     if (!review) throw new ApiError(404, "Review not found");
 
-    if (review.userId.toString() !== userId.toString()) {
+    if (review.userId.toString() !== userId.toString() && req.user.role !== "admin") {
       throw new ApiError(403, "You are not authorized to delete this review");
     }
 

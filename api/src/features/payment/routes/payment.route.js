@@ -1,21 +1,9 @@
-import { Router } from "express";
 import express from "express";
-import {
-  createPaymentIntent,
-  handleWebhook,
-} from "../controllers/payment.controller.js";
-import { verifyToken } from "../../../middlewares/verifyToken.middleware.js";
+import { getPaypalConfig, servePaypalCheckout } from "../controllers/payment.controller.js";
 
-const router = Router();
+const router = express.Router();
 
-// Webhook must use raw body — before any json middleware
-router.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  handleWebhook
-);
-
-// Protected routes
-router.post("/create-payment-intent", verifyToken, createPaymentIntent);
+router.get("/config/paypal", getPaypalConfig);
+router.get("/checkout/paypal", servePaypalCheckout);
 
 export default router;

@@ -93,13 +93,11 @@ export const updatePassword = async (req, res, next) => {
 export const addAddress = async (req, res, next) => {
   try {
     const {
-      label,
-      fullName,
-      streetAddress,
+      street,
       city,
       state,
-      zipCode,
-      phoneNumber,
+      postalCode,
+      country,
       isDefault,
     } = req.body;
 
@@ -107,13 +105,11 @@ export const addAddress = async (req, res, next) => {
     if (!user) throw new ApiError(404, "User not found");
 
     const newAddress = {
-      label,
-      fullName,
-      streetAddress,
+      street,
       city,
       state,
-      zipCode,
-      phoneNumber,
+      postalCode,
+      country,
       isDefault,
     };
 
@@ -126,7 +122,21 @@ export const addAddress = async (req, res, next) => {
 
     return res
       .status(201)
-      .json(new ApiResponse(201, user.addresses, "Address added successfully"));
+      .json(
+        new ApiResponse(
+          201,
+          {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            imageUrl: user.imageUrl,
+            addresses: user.addresses,
+            wishlist: user.wishlist,
+            role: user.role,
+          },
+          "Address added successfully"
+        )
+      );
   } catch (error) {
     next(error);
   }
@@ -173,7 +183,19 @@ export const updateAddress = async (req, res, next) => {
     return res
       .status(200)
       .json(
-        new ApiResponse(200, user.addresses, "Address updated successfully")
+        new ApiResponse(
+          200,
+          {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            imageUrl: user.imageUrl,
+            addresses: user.addresses,
+            wishlist: user.wishlist,
+            role: user.role,
+          },
+          "Address updated successfully"
+        )
       );
   } catch (error) {
     next(error);
@@ -188,13 +210,28 @@ export const deleteAddress = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     if (!user) throw new ApiError(404, "User not found");
 
-    user.addresses.pull(addressId);
+    const address = user.addresses.id(addressId);
+    if (!address) throw new ApiError(404, "Address not found");
+
+    address.deleteOne();
     await user.save();
 
     return res
       .status(200)
       .json(
-        new ApiResponse(200, user.addresses, "Address deleted successfully")
+        new ApiResponse(
+          200,
+          {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            imageUrl: user.imageUrl,
+            addresses: user.addresses,
+            wishlist: user.wishlist,
+            role: user.role,
+          },
+          "Address deleted successfully"
+        )
       );
   } catch (error) {
     next(error);

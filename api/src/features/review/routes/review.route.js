@@ -1,8 +1,5 @@
 import { Router } from "express";
-import {
-  verifyToken,
-  verifyTokenAndAuthorization,
-} from "../../../middlewares/verifyToken.middleware.js";
+import { verifyToken } from "../../../middlewares/verifyToken.middleware.js";
 import {
   createReview,
   getProductReviews,
@@ -22,6 +19,6 @@ router.use(verifyToken);
 router.get("/my-reviews", getMyReviews);
 router.post("/", createReview);
 router.patch("/:id", updateReview);
-router.delete("/:id", verifyTokenAndAuthorization, deleteReview);
+router.delete("/:id", deleteReview);
 
 export default router;

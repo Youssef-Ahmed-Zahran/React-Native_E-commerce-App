@@ -1,211 +1,138 @@
-import Stripe from "stripe";
-import mongoose from "mongoose";
-import { User } from "../../user/models/user.model.js";
-import { Product } from "../../product/models/product.model.js";
-import { Order } from "../../order/models/order.model.js";
-import { Cart } from "../../cart/models/cart.model.js";
+import express from "express";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+export const getPaypalConfig = (req, res) => {
+  res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
+};
 
-const SHIPPING_COST = 10.0;
-const TAX_RATE = 0.08;
+export const servePaypalCheckout = (req, res) => {
+  const total = req.query.total || "0.00";
+  const redirectUrl = req.query.redirectUrl || "";
+  const clientId = process.env.PAYPAL_CLIENT_ID;
 
-export async function createPaymentIntent(req, res) {
-  try {
-    const { shippingAddress } = req.body;
-    const user = req.user;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          background: #0f172a;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 20px;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        #paypal-button-container { width: 100%; max-width: 400px; }
+        .loading {
+          color: #94a3b8;
+          font-size: 14px;
+          text-align: center;
+          margin-bottom: 16px;
+        }
+        .total {
+          color: #ffffff;
+          font-size: 22px;
+          font-weight: 700;
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .error {
+          color: #f87171;
+          font-size: 14px;
+          text-align: center;
+          margin-top: 16px;
+        }
+        .success-container {
+          text-align: center;
+          display: none;
+        }
+        .success-container h2 {
+          color: #4ade80;
+          font-size: 24px;
+          margin-bottom: 8px;
+        }
+        .success-container p {
+          color: #94a3b8;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <p class="total">Total: $${total}</p>
+      <p class="loading" id="loading">Loading PayPal...</p>
+      <div id="paypal-button-container"></div>
+      <div class="success-container" id="success-container">
+        <h2>✅ Payment Approved!</h2>
+        <p>Redirecting back to the app...</p>
+      </div>
+      <p class="error" id="error" style="display:none;"></p>
 
-    if (!shippingAddress) {
-      return res.status(400).json({ error: "Shipping address is required" });
-    }
+      <script src="https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture"></script>
+      <script>
+        document.getElementById('loading').style.display = 'none';
 
-    // Get cart from DB
-    const cart = await Cart.findOne({ user: user._id }).populate(
-      "items.product"
-    );
+        var redirectUrl = decodeURIComponent('${encodeURIComponent(redirectUrl)}');
 
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ error: "Cart is empty" });
-    }
+        function doRedirect(status, params) {
+          var separator = redirectUrl.indexOf('?') >= 0 ? '&' : '?';
+          var url = redirectUrl + separator + 'status=' + status;
+          if (params) url += '&' + params;
 
-    // Validate stock + calculate total server-side
-    let subtotal = 0;
-    const validatedItems = [];
+          // Try WebView postMessage (for web iframe)
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ status: status, params: params }));
+          } else if (window.parent !== window) {
+            window.parent.postMessage(JSON.stringify({ status: status, params: params }), '*');
+          }
 
-    for (const item of cart.items) {
-      const product = await Product.findById(item.product._id);
-
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-
-      if (product.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({ error: `Insufficient stock for ${product.name}` });
-      }
-
-      subtotal += product.price * item.quantity;
-
-      validatedItems.push({
-        product: product._id.toString(),
-        name: product.name,
-        price: product.price,
-        quantity: item.quantity,
-        image: product.images[0] || "",
-      });
-    }
-
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + SHIPPING_COST + tax;
-
-    // Find or create Stripe customer
-    let customer;
-    if (user.stripeCustomerId) {
-      customer = await stripe.customers.retrieve(user.stripeCustomerId);
-    } else {
-      customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: { userId: user._id.toString() },
-      });
-      await User.findByIdAndUpdate(user._id, { stripeCustomerId: customer.id });
-    }
-
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100),
-      currency: "usd",
-      customer: customer.id,
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        userId: user._id.toString(),
-        orderItems: JSON.stringify(validatedItems),
-        shippingAddress: JSON.stringify(shippingAddress),
-        subtotal: subtotal.toFixed(2),
-        shippingCost: SHIPPING_COST.toFixed(2),
-        taxAmount: tax.toFixed(2),
-        totalAmount: total.toFixed(2),
-      },
-    });
-
-    res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
-      orderSummary: {
-        items: validatedItems,
-        subtotal,
-        shippingCost: SHIPPING_COST,
-        taxAmount: tax,
-        totalAmount: total,
-      },
-    });
-  } catch (error) {
-    console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: "Failed to create payment intent" });
-  }
-}
-
-export async function handleWebhook(req, res) {
-  const sig = req.headers["stripe-signature"];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object;
-
-    try {
-      // Prevent duplicate orders
-      const existingOrder = await Order.findOne({
-        "paymentResult.id": paymentIntent.id,
-      });
-      if (existingOrder) {
-        return res.json({ received: true });
-      }
-
-      const {
-        userId,
-        orderItems,
-        shippingAddress,
-        subtotal,
-        shippingCost,
-        taxAmount,
-        totalAmount,
-      } = paymentIntent.metadata;
-
-      const items = JSON.parse(orderItems);
-
-      const session = await mongoose.startSession();
-      session.startTransaction();
-
-      try {
-        // Validate stock
-        for (const item of items) {
-          const product = await Product.findById(item.product).session(session);
-          if (!product) throw new Error(`Product not found: ${item.name}`);
-          if (product.stock < item.quantity)
-            throw new Error(`Insufficient stock for ${product.name}`);
+          // Redirect (for system browser)
+          if (redirectUrl) {
+            window.location.href = url;
+          }
         }
 
-        // Create order
-        const order = await Order.create(
-          [
-            {
-              user: userId,
-              items,
-              shippingAddress: JSON.parse(shippingAddress),
-              paymentMethod: "stripe",
-              paymentResult: {
-                id: paymentIntent.id,
-                status: "succeeded",
-              },
-              subtotal: parseFloat(subtotal),
-              shippingCost: parseFloat(shippingCost),
-              taxAmount: parseFloat(taxAmount),
-              totalAmount: parseFloat(totalAmount),
-              paidAt: Date.now(),
-            },
-          ],
-          { session }
-        );
-
-        // Update stock
-        for (const item of items) {
-          await Product.findByIdAndUpdate(
-            item.product,
-            { $inc: { stock: -item.quantity } },
-            { session }
-          );
-        }
-
-        // Clear cart
-        await Cart.findOneAndUpdate(
-          { user: userId },
-          { items: [], totalPrice: 0 },
-          { session }
-        );
-
-        await session.commitTransaction();
-        console.log("Order created successfully:", order[0]._id);
-      } catch (error) {
-        await session.abortTransaction();
-        throw error;
-      } finally {
-        session.endSession();
-      }
-    } catch (error) {
-      console.error("Error processing webhook:", error);
-    }
-  }
-
-  res.json({ received: true });
-}
+        paypal.Buttons({
+          fundingSource: paypal.FUNDING.PAYPAL,
+          style: {
+            layout: 'vertical',
+            color: 'blue',
+            shape: 'pill',
+            label: 'pay',
+            height: 48,
+          },
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              purchase_units: [{
+                amount: { value: '${total}' }
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+              document.getElementById('paypal-button-container').style.display = 'none';
+              document.getElementById('success-container').style.display = 'block';
+              setTimeout(function() {
+                doRedirect('success', 'orderID=' + data.orderID);
+              }, 800);
+            });
+          },
+          onError: function(err) {
+            console.error(err);
+            document.getElementById('error').textContent = 'Payment failed: ' + err.toString();
+            document.getElementById('error').style.display = 'block';
+            setTimeout(function() { doRedirect('error'); }, 1500);
+          },
+          onCancel: function() {
+            doRedirect('cancel');
+          },
+        }).render('#paypal-button-container');
+      </script>
+    </body>
+    </html>
+  `;
+  res.send(html);
+};

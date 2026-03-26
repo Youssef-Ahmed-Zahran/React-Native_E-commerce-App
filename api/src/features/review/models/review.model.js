@@ -13,24 +13,7 @@ const reviewSchema = new mongoose.Schema(
       required: true,
     },
 
-    // --- Review type ---
-    reviewType: {
-      type: String,
-      enum: ["order", "product"],
-      required: true,
-    },
-
-    // --- Only for order-based reviews ---
-    orderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
-      required: function () {
-        return this.reviewType === "order";
-      },
-      default: null,
-    },
-
-    // --- Stars (both types) ---
+    // --- Stars ---
     rating: {
       type: Number,
       required: true,
@@ -38,13 +21,10 @@ const reviewSchema = new mongoose.Schema(
       max: 5,
     },
 
-    // --- Comment (only for single-product reviews) ---
+    // --- Comment ---
     comment: {
       type: String,
-      required: function () {
-        return this.reviewType === "product";
-      },
-      default: null,
+      required: true,
       maxlength: 1000,
     },
   },
@@ -54,12 +34,38 @@ const reviewSchema = new mongoose.Schema(
 // Prevent duplicate reviews of the same type by the same user on the same product
 reviewSchema.index({ productId: 1, userId: 1 }, { unique: true });
 
-// Validator: order reviews must NOT have a comment
-reviewSchema.pre("validate", function (next) {
-  if (this.reviewType === "order" && this.comment) {
-    return next(new Error("Order reviews cannot include a comment."));
+reviewSchema.statics.calcAverageRating = async function (productId) {
+  const stats = await this.aggregate([
+    { $match: { productId } },
+    {
+      $group: {
+        _id: "$productId",
+        averageRating: { $avg: "$rating" },
+        totalReviews: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const Product = mongoose.model("Product");
+  if (stats.length > 0) {
+    await Product.findByIdAndUpdate(productId, {
+      averageRating: stats[0].averageRating,
+      totalReviews: stats[0].totalReviews,
+    });
+  } else {
+    await Product.findByIdAndUpdate(productId, {
+      averageRating: 0,
+      totalReviews: 0,
+    });
   }
-  next();
+};
+
+reviewSchema.post("save", function () {
+  this.constructor.calcAverageRating(this.productId);
+});
+
+reviewSchema.post("deleteOne", { document: true, query: false }, function () {
+  this.constructor.calcAverageRating(this.productId);
 });
 
 export const Review = mongoose.model("Review", reviewSchema);

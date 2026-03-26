@@ -1,15 +1,7 @@
 import mongoose from "mongoose";
 
 const addressSchema = new mongoose.Schema({
-  label: {
-    type: String,
-    required: true,
-  },
-  fullName: {
-    type: String,
-    required: true,
-  },
-  streetAddress: {
+  street: {
     type: String,
     required: true,
   },
@@ -21,11 +13,11 @@ const addressSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  zipCode: {
+  postalCode: {
     type: String,
     required: true,
   },
-  phoneNumber: {
+  country: {
     type: String,
     required: true,
   },
@@ -57,10 +49,6 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     imageUrl: {
-      type: String,
-      default: "",
-    },
-    stripeCustomerId: {
       type: String,
       default: "",
     },

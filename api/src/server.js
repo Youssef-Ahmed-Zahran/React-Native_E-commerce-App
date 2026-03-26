@@ -14,9 +14,9 @@ import adminRoutes from "./features/admin/routes/admin.route.js";
 import productRoutes from "./features/product/routes/product.route.js";
 import categoryRoutes from "./features/category/routes/category.route.js";
 import cartRoutes from "./features/cart/routes/cart.route.js";
-import paymentRoutes from "./features/payment/routes/payment.route.js";
 import orderRoutes from "./features/order/routes/order.route.js";
 import reviewRoutes from "./features/review/routes/review.route.js";
+import paymentRoutes from "./features/payment/routes/payment.route.js";
 
 // Express Usages
 dotenv.config();
@@ -31,9 +31,19 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
+
+app.use("/api/v1", paymentRoutes);
+
+// Apply helmet for all other routes (after PayPal)
 app.use(helmet());
+
+const allowedOrigins = [process.env.CLIENT_URL, process.env.MOBILE_URL];
 const corsOptions = {
-  origin: process.env.CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed = allowedOrigins.includes(origin);
+    callback(isAllowed ? null : new Error("Not allowed by CORS"), isAllowed);
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   exposedHeaders: ["Set-Cookie"],
@@ -49,7 +59,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/payment", paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 
