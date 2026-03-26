@@ -38,8 +38,8 @@ function UpdateProduct() {
 
   // Pre-fill form from fetched data
   useEffect(() => {
-    if (data?.products) {
-      const product = data.products.find((p) => p._id === id);
+    if (data?.pages) {
+      const product = data.pages.flatMap(page => page.products).find((p) => p._id === id);
       if (product) {
         reset({
           name: product.name || "",
@@ -120,7 +120,7 @@ function UpdateProduct() {
     );
   }
 
-  if (!data?.products?.find((p) => p._id === id)) {
+  if (!data?.pages?.flatMap(page => page.products).find((p) => p._id === id)) {
     return (
       <div className="flex-1 p-8 pt-10 min-h-screen bg-slate-50/50 flex items-center justify-center">
         <div className="bg-red-50/80 backdrop-blur-sm text-red-600 p-8 rounded-2xl shadow-lg border border-red-100 flex flex-col items-center">
@@ -282,7 +282,7 @@ function UpdateProduct() {
                       ? "Loading categories..."
                       : "Select a category"}
                   </option>
-                  {categoryData?.categories?.map((cat) => (
+                  {categoryData?.pages?.flatMap(page => page.categories).map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
                     </option>

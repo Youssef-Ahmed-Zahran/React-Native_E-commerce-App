@@ -227,7 +227,7 @@ function AddProduct() {
                       ? "Loading categories..."
                       : "Select a category"}
                   </option>
-                  {categoryData?.categories?.map((cat) => (
+                  {categoryData?.pages?.flatMap(page => page.categories).map((cat) => (
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
                     </option>

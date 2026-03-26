@@ -22,8 +22,8 @@ function UpdateCategory() {
   const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => {
-    if (data?.categories) {
-      const category = data.categories.find((c) => c._id === id);
+    if (data?.pages) {
+      const category = data.pages.flatMap(page => page.categories).find((c) => c._id === id);
       if (category) {
         setName(category.name || "");
         setImagePreview(category.image || "");
@@ -86,7 +86,7 @@ function UpdateCategory() {
     );
   }
 
-  if (!data?.categories?.find((c) => c._id === id)) {
+  if (!data?.pages?.flatMap(page => page.categories).find((c) => c._id === id)) {
     return (
       <div className="flex-1 p-8 pt-10 min-h-screen bg-slate-50/50 flex items-center justify-center">
         <div className="bg-red-50/80 backdrop-blur-sm text-red-600 p-8 rounded-2xl shadow-lg border border-red-100 flex flex-col items-center">
