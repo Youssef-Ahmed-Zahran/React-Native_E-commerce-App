@@ -19,14 +19,38 @@ export default function QuickActionGrid({
     <View className="mb-4">
       {/* Row 1 */}
       <View className="flex-row">
-        <ActionCard icon="👤" label="Edit Profile" onPress={onEditProfile} />
-        <ActionCard icon="📦" label="Orders" onPress={onOrders} />
+        <ActionCard
+          icon="person"
+          iconColor="#60a5fa"
+          accentColor="rgba(96,165,250,0.15)"
+          label="Edit Profile"
+          onPress={onEditProfile}
+        />
+        <ActionCard
+          icon="cube"
+          iconColor="#c084fc"
+          accentColor="rgba(192,132,252,0.15)"
+          label="Orders"
+          onPress={onOrders}
+        />
       </View>
 
       {/* Row 2 */}
       <View className="flex-row">
-        <ActionCard icon="📍" label="Addresses" onPress={onAddresses} />
-        <ActionCard icon="❤️" label="Wishlist" onPress={onWishlist} />
+        <ActionCard
+          icon="location"
+          iconColor="#34d399"
+          accentColor="rgba(52,211,153,0.15)"
+          label="Addresses"
+          onPress={onAddresses}
+        />
+        <ActionCard
+          icon="heart"
+          iconColor="#f87171"
+          accentColor="rgba(248,113,113,0.15)"
+          label="Wishlist"
+          onPress={onWishlist}
+        />
       </View>
     </View>
   );

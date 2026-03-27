@@ -41,7 +41,7 @@ export default function LoginForm() {
         onError: (error: Error) => {
           Alert.alert("Login Failed", error.message);
         },
-      }
+      },
     );
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, Text } from "react-native";
+import { View, ScrollView, Text, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileHeader from "../components/ProfileHeader";
 import QuickActionGrid from "../components/QuickActionGrid";
@@ -33,13 +33,27 @@ export default function Settings() {
 
   // ── Main settings ──
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#0f0f0f" }}>
+    <SafeAreaView className="flex-1 bg-slate-950">
+      <StatusBar barStyle="light-content" backgroundColor="#020617" />
+
+      {/* ── Decorative Blob ── */}
+      <View
+        className="absolute -top-32 -left-32 w-80 h-80 rounded-full opacity-10"
+        style={{ backgroundColor: "#7c3aed" }}
+      />
+
       <ScrollView
         className="flex-1 px-4 pt-4"
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Text className="text-white font-bold text-2xl mb-4">Settings</Text>
+        <Text className="text-white font-bold text-3xl mb-6 mt-2 tracking-tight">
+          Settings
+        </Text>
+
+        <Text className="text-slate-400 font-bold text-sm tracking-wider uppercase mb-3 ml-1">
+          My Account
+        </Text>
 
         {/* Profile Card */}
         <ProfileHeader />
@@ -51,6 +65,12 @@ export default function Settings() {
           onAddresses={() => setActiveScreen("addresses")}
           onWishlist={() => setActiveScreen("wishlist")}
         />
+
+        <View className="mt-4 mb-3 ml-1">
+          <Text className="text-slate-400 font-bold text-sm tracking-wider uppercase">
+            App Preferences
+          </Text>
+        </View>
 
         {/* Settings Rows */}
         <SettingsRow icon="🔔" label="Notifications" />

@@ -1,12 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../lib/axios";
 import { QUERY_KEYS } from "../../../lib/queryKeys";
-import type { Product, ProductsResponse, FetchProductsParams } from "../../../types/product.types";
+import type {
+  Product,
+  ProductsResponse,
+  FetchProductsParams,
+} from "../../../types/product.types";
 
 // *********************************** ((API Functions)) **************************************** //
 
 const fetchProducts = async (
-  params: FetchProductsParams = {}
+  params: FetchProductsParams = {},
 ): Promise<ProductsResponse> => {
   const { page = 1, limit = 10, search = "", category = "" } = params;
   const response = await axiosInstance.get("/products", {

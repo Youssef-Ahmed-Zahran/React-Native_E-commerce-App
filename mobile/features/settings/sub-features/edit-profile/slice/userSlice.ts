@@ -5,12 +5,14 @@ import type { User, Address } from "../../../../../types/user.types";
 
 // *********************************** ((API Functions)) **************************************** //
 
-const updateProfileApi = async (data: {
-  name?: string;
-  email?: string;
-  imageUrl?: string;
+const updateProfileApi = async ({
+  userId,
+  data,
+}: {
+  userId: string;
+  data: { name?: string; email?: string; imageUrl?: string };
 }): Promise<User> => {
-  const response = await axiosInstance.put("/auth/profile", data);
+  const response = await axiosInstance.put(`/users/${userId}`, data);
   return response.data.data;
 };
 
@@ -33,7 +35,7 @@ const updateAddressApi = async ({
 }): Promise<User> => {
   const response = await axiosInstance.put(
     `/users/addresses/${addressId}`,
-    data
+    data,
   );
   return response.data.data;
 };

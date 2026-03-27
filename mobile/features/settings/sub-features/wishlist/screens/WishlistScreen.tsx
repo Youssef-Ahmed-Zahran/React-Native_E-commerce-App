@@ -18,7 +18,7 @@ export default function Wishlist({ onBack }: WishlistProps) {
   const { data: products, isLoading, isError, error } = useWishlist();
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#0f0f0f" }}>
+    <SafeAreaView className="flex-1 bg-slate-950">
       {/* Header */}
       <View className="flex-row items-center px-4 pt-4 pb-2">
         <TouchableOpacity onPress={onBack} activeOpacity={0.7}>

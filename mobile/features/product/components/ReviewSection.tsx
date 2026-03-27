@@ -86,10 +86,10 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
           showError(
             err?.response?.data?.message ||
               err.message ||
-              "Something went wrong"
+              "Something went wrong",
           );
         },
-      }
+      },
     );
   };
 
@@ -103,14 +103,14 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
         onError: (err: any) => {
           showError(err?.message || "Failed to delete review");
         },
-      }
+      },
     );
   };
 
   const handleDelete = (reviewId: string) => {
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
-        "Are you sure you want to delete this review?"
+        "Are you sure you want to delete this review?",
       );
       if (confirmed) performDelete(reviewId);
     } else {
@@ -124,7 +124,7 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
             style: "destructive",
             onPress: () => performDelete(reviewId),
           },
-        ]
+        ],
       );
     }
   };

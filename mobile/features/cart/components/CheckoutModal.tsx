@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import Constants from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
+import { Ionicons } from "@expo/vector-icons";
 import Modal from "../../../components/Modal";
 import { useCreateOrder } from "../../settings/sub-features/orders/slice/orderSlice";
 import { useClearCart } from "../slice/cartSlice";
@@ -80,7 +81,7 @@ export default function CheckoutModal({
               // Web Alerts might not block or handle onPress perfectly
               Alert.alert(
                 "Order Placed! 🎉",
-                `Your order has been placed successfully.\nPayPal Transaction: ${orderID}`
+                `Your order has been placed successfully.\nPayPal Transaction: ${orderID}`,
               );
               router.push("/(tabs)/settings");
             } else {
@@ -92,17 +93,17 @@ export default function CheckoutModal({
                     text: "OK",
                     onPress: () => router.push("/(tabs)/settings"),
                   },
-                ]
+                ],
               );
             }
           },
           onError: (err: Error) => {
             Alert.alert("Order Error", err.message);
           },
-        }
+        },
       );
     },
-    [user?.name, defaultAddress, shippingCost, taxAmount]
+    [user?.name, defaultAddress, shippingCost, taxAmount],
   );
 
   const resetAndClose = () => {
@@ -116,7 +117,7 @@ export default function CheckoutModal({
     if (!isShippingValid) {
       Alert.alert(
         "Error",
-        "Please add a default shipping address in your Settings first."
+        "Please add a default shipping address in your Settings first.",
       );
       return;
     }
@@ -131,7 +132,7 @@ export default function CheckoutModal({
     try {
       const result = await WebBrowser.openAuthSessionAsync(
         checkoutUrl,
-        redirectUrl
+        redirectUrl,
       );
 
       if (result.type === "success" && result.url) {
@@ -158,7 +159,7 @@ export default function CheckoutModal({
     } catch (error) {
       Alert.alert(
         "Error",
-        "Could not open PayPal. Make sure your backend is running."
+        "Could not open PayPal. Make sure your backend is running.",
       );
     } finally {
       setIsPayPalLoading(false);
@@ -245,45 +246,81 @@ export default function CheckoutModal({
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* ── Shipping Address ── */}
           {isUserLoading ? (
-            <ActivityIndicator size="small" color="#7c3aed" className="my-4" />
+            <ActivityIndicator size="small" color="#7c3aed" className="my-6" />
           ) : defaultAddress ? (
-            <View className="mb-4">
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2 mt-2">
-                Shipping To
-              </Text>
+            <View className="mb-6 mt-2">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-white text-lg font-bold">
+                  Shipping Details
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    onClose();
+                    router.push("/(tabs)/settings");
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-violet-400 font-semibold text-sm">
+                    Change
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <View
-                className="rounded-xl border border-white/10 p-4"
-                style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
+                className="rounded-3xl border flex-row items-start p-4"
+                style={{
+                  backgroundColor: "rgba(124,58,237,0.05)",
+                  borderColor: "rgba(124,58,237,0.2)",
+                  shadowColor: "#7c3aed",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                }}
               >
-                <Text className="text-white font-semibold text-base mb-1">
-                  {user?.name || "Customer"}
-                </Text>
-                <Text className="text-slate-300 text-sm">
-                  {defaultAddress.street}
-                </Text>
-                <Text className="text-slate-300 text-sm">
-                  {defaultAddress.city}, {defaultAddress.state}{" "}
-                  {defaultAddress.postalCode}
-                </Text>
-                <Text className="text-slate-400 text-sm mt-1">
-                  {defaultAddress.country}
-                </Text>
+                <View
+                  className="w-12 h-12 rounded-2xl items-center justify-center mr-4 mt-0.5"
+                  style={{ backgroundColor: "rgba(124,58,237,0.15)" }}
+                >
+                  <Ionicons name="location" size={24} color="#a78bfa" />
+                </View>
+                <View className="flex-1 justify-center">
+                  <Text className="text-white font-bold text-lg mb-1 tracking-tight">
+                    {user?.name || "Customer"}
+                  </Text>
+                  <Text className="text-slate-300 text-base leading-6">
+                    {defaultAddress.street}
+                  </Text>
+                  <Text className="text-slate-300 text-base leading-6">
+                    {defaultAddress.city}, {defaultAddress.state}{" "}
+                    {defaultAddress.postalCode}
+                  </Text>
+                  <Text className="text-violet-300 text-sm font-bold tracking-widest uppercase mt-2">
+                    {defaultAddress.country}
+                  </Text>
+                </View>
               </View>
             </View>
           ) : (
-            <View className="mb-4 mt-2 items-center">
-              <Text className="text-slate-300 text-center mb-3">
-                You don't have a default address set.
+            <View className="mb-6 mt-4 items-center">
+              <View
+                className="w-16 h-16 rounded-full items-center justify-center mb-4"
+                style={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+              >
+                <Ionicons name="location-outline" size={32} color="#f87171" />
+              </View>
+              <Text className="text-slate-300 text-center mb-5 text-base px-4">
+                You don't have a default shipping address set.
               </Text>
               <TouchableOpacity
                 onPress={() => {
                   onClose();
                   router.push("/(tabs)/settings");
                 }}
-                className="bg-white/10 px-4 py-2 rounded-lg border border-white/10"
+                className="px-6 py-3 rounded-2xl"
+                style={{ backgroundColor: "rgba(124,58,237,0.2)" }}
+                activeOpacity={0.8}
               >
-                <Text className="text-violet-400 font-semibold">
-                  Go to Settings to Add Address
+                <Text className="text-violet-400 font-bold text-base">
+                  Go to Settings
                 </Text>
               </TouchableOpacity>
             </View>
@@ -291,14 +328,14 @@ export default function CheckoutModal({
 
           {/* ── Order Summary (recap) ── */}
           <View
-            className="rounded-2xl border border-white/10 p-4 mt-2 mb-3"
+            className="rounded-3xl border border-white/10 p-5 mt-2 mb-4"
             style={{ backgroundColor: "rgba(255,255,255,0.03)" }}
           >
             <SummaryRow label="Subtotal" value={subtotal} />
             <SummaryRow label="Shipping" value={shippingCost} />
-            <SummaryRow label="Tax" value={taxAmount} />
-            <View className="border-t border-white/10 mt-2 pt-2">
-              <SummaryRow label="Total" value={totalAmount} bold />
+            <SummaryRow label="Tax (8%)" value={taxAmount} />
+            <View className="border-t border-white/10 mt-4 pt-4">
+              <SummaryRow label="Total Amount" value={totalAmount} bold />
             </View>
           </View>
 
@@ -322,7 +359,7 @@ export default function CheckoutModal({
               {isPayPalLoading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text className="text-white text-lg">💳</Text>
+                <Ionicons name="card" size={24} color="#fff" />
               )}
               <Text className="text-white font-bold text-base tracking-wide">
                 {isPayPalLoading ? "Opening PayPal..." : "Proceed to PayPal"}
@@ -354,7 +391,7 @@ export default function CheckoutModal({
     if (!isShippingValid) {
       Alert.alert(
         "Error",
-        "Please add a default shipping address in your Settings first."
+        "Please add a default shipping address in your Settings first.",
       );
       return;
     }
@@ -366,14 +403,14 @@ export default function CheckoutModal({
 
 function SummaryRow({ label, value, bold }: SummaryRowProps) {
   return (
-    <View className="flex-row justify-between items-center py-1">
+    <View className="flex-row justify-between items-center py-1.5">
       <Text
-        className={`text-sm ${bold ? "text-white font-bold" : "text-slate-400"}`}
+        className={`text-sm ${bold ? "text-white font-bold text-lg" : "text-slate-400 font-medium"}`}
       >
         {label}
       </Text>
       <Text
-        className={`text-sm ${bold ? "text-white font-bold" : "text-slate-300"}`}
+        className={`text-sm ${bold ? "text-violet-400 font-bold text-xl" : "text-slate-200 font-medium"}`}
       >
         ${value.toFixed(2)}
       </Text>

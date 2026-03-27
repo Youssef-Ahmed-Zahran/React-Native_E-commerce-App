@@ -1,22 +1,46 @@
 import { Tabs } from "expo-router";
 import { View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useCart } from "../../features/cart/slice/cartSlice";
 
 function TabIcon({
-  icon,
+  name,
   label,
   focused,
+  badgeCount,
 }: {
-  icon: string;
+  name: React.ComponentProps<typeof Ionicons>["name"];
   label: string;
   focused: boolean;
+  badgeCount?: number;
 }) {
   return (
-    <View className="items-center justify-center pt-2">
-      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{icon}</Text>
+    <View className="items-center justify-center pt-2" style={{ minWidth: 80 }}>
+      <View>
+        <Ionicons
+          name={name}
+          size={24}
+          color={focused ? "#a78bfa" : "#64748b"}
+        />
+        {badgeCount !== undefined && badgeCount > 0 && (
+          <View
+            className="absolute -top-1 -right-2 rounded-full items-center justify-center border border-[#0f172a]"
+            style={{ backgroundColor: "#ef4444", minWidth: 16, height: 16 }}
+          >
+            <Text
+              className="text-white font-bold"
+              style={{ fontSize: 9, lineHeight: 12, paddingHorizontal: 3 }}
+            >
+              {badgeCount > 99 ? "99+" : badgeCount}
+            </Text>
+          </View>
+        )}
+      </View>
       <Text
-        className={`text-[10px] mt-1 font-semibold ${
+        className={`text-[10px] mt-1 font-semibold text-center ${
           focused ? "text-violet-400" : "text-slate-500"
         }`}
+        numberOfLines={1}
       >
         {label}
       </Text>
@@ -25,6 +49,9 @@ function TabIcon({
 }
 
 export default function TabsLayout() {
+  const { data: cart } = useCart();
+  const cartItemCount = cart?.items?.length || 0;
+
   return (
     <Tabs
       screenOptions={{
@@ -43,7 +70,11 @@ export default function TabsLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🏠" label="Home" focused={focused} />
+            <TabIcon
+              name={focused ? "home" : "home-outline"}
+              label="Home"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -51,7 +82,12 @@ export default function TabsLayout() {
         name="cart"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="🛒" label="Cart" focused={focused} />
+            <TabIcon
+              name={focused ? "cart" : "cart-outline"}
+              label="Cart"
+              focused={focused}
+              badgeCount={cartItemCount}
+            />
           ),
         }}
       />
@@ -59,7 +95,11 @@ export default function TabsLayout() {
         name="settings"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon icon="⚙️" label="Settings" focused={focused} />
+            <TabIcon
+              name={focused ? "settings" : "settings-outline"}
+              label="Settings"
+              focused={focused}
+            />
           ),
         }}
       />

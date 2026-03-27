@@ -39,11 +39,15 @@ export default function ProfileForm({ onSuccess }: ProfileFormProps) {
   });
 
   const onSubmit = (data: ProfileFormData) => {
+    if (!user?._id) return;
     updateProfile(
       {
-        name: data.name.trim(),
-        email: data.email.trim(),
-        imageUrl: data.imageUrl?.trim() || "",
+        userId: user._id,
+        data: {
+          name: data.name.trim(),
+          email: data.email.trim(),
+          imageUrl: data.imageUrl?.trim() || "",
+        },
       },
       {
         onSuccess: () => {
@@ -53,7 +57,7 @@ export default function ProfileForm({ onSuccess }: ProfileFormProps) {
         onError: (error) => {
           Alert.alert("Error", error.message);
         },
-      }
+      },
     );
   };
 

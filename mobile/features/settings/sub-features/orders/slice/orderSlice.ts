@@ -18,7 +18,7 @@ const createOrderApi = async (data: CreateOrderPayload): Promise<Order> => {
 
 const fetchOrders = async (
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<OrdersResponse> => {
   const response = await axiosInstance.get("/orders", {
     params: { page, limit },

@@ -71,7 +71,7 @@ export default function AddAddress({
           onError: (error) => {
             Alert.alert("Error", error.message);
           },
-        }
+        },
       );
     } else {
       addAddress(payload, {

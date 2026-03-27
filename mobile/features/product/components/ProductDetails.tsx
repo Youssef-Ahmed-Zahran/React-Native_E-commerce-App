@@ -59,7 +59,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
       {
         onSuccess: () => Alert.alert("Success", "Added to cart!"),
         onError: (err: Error) => Alert.alert("Error", err.message),
-      }
+      },
     );
   };
 
@@ -116,10 +116,11 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
             {product.images.map((_, idx) => (
               <View
                 key={idx}
-                className={`rounded-full ${idx === activeImageIndex
+                className={`rounded-full ${
+                  idx === activeImageIndex
                     ? "w-6 h-2 bg-violet-500"
                     : "w-2 h-2 bg-white/30"
-                  }`}
+                }`}
               />
             ))}
           </View>
@@ -207,12 +208,14 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
         {/* Stock */}
         <View className="flex-row items-center gap-2 mb-8">
           <View
-            className={`w-2.5 h-2.5 rounded-full ${product.stock > 0 ? "bg-emerald-500" : "bg-red-500"
-              }`}
+            className={`w-2.5 h-2.5 rounded-full ${
+              product.stock > 0 ? "bg-emerald-500" : "bg-red-500"
+            }`}
           />
           <Text
-            className={`text-sm font-medium ${product.stock > 0 ? "text-emerald-400" : "text-red-400"
-              }`}
+            className={`text-sm font-medium ${
+              product.stock > 0 ? "text-emerald-400" : "text-red-400"
+            }`}
           >
             {product.stock > 0
               ? `In Stock (${product.stock} available)`

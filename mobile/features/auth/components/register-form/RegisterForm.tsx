@@ -36,7 +36,11 @@ export default function RegisterForm() {
 
   const onSubmit = (data: RegisterFormData) => {
     register(
-      { name: data.name.trim(), email: data.email.trim().toLowerCase(), password: data.password },
+      {
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      },
       {
         onSuccess: () => {
           router.replace("/");
@@ -44,7 +48,7 @@ export default function RegisterForm() {
         onError: (error: Error) => {
           Alert.alert("Registration Failed", error.message);
         },
-      }
+      },
     );
   };
 

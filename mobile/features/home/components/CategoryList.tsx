@@ -23,7 +23,7 @@ export default function CategoryList({
     return (
       <TouchableOpacity
         onPress={() => onSelectCategory(isSelected ? "" : item._id)}
-        className={`mr-3 rounded-2xl border px-4 py-3 flex-row items-center gap-2 ${
+        className={`mr-3 rounded-[20px] border pr-5 pl-2 py-2 flex-row items-center gap-2 ${
           isSelected ? "border-violet-500" : "border-white/10"
         }`}
         style={{
@@ -33,22 +33,24 @@ export default function CategoryList({
         }}
         activeOpacity={0.7}
       >
-        {item.image ? (
-          <Image
-            source={{ uri: item.image }}
-            style={{ width: 24, height: 24, borderRadius: 6 }}
-            contentFit="cover"
-          />
-        ) : (
-          <View
-            className="w-6 h-6 rounded-md items-center justify-center"
-            style={{ backgroundColor: "rgba(124,58,237,0.3)" }}
-          >
-            <Text className="text-xs">📦</Text>
-          </View>
-        )}
+        <View
+          className="w-8 h-8 rounded-full items-center justify-center overflow-hidden"
+          style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+        >
+          {item.image ? (
+            <Image
+              source={{ uri: item.image }}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="cover"
+              transition={200}
+            />
+          ) : (
+            <Text className="text-xs">📂</Text>
+          )}
+        </View>
+
         <Text
-          className={`text-sm font-semibold ${
+          className={`text-sm font-bold ${
             isSelected ? "text-violet-400" : "text-slate-300"
           }`}
         >

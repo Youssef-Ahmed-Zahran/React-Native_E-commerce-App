@@ -45,7 +45,7 @@ export default function Addresses({ onBack }: AddressesProps) {
 
   if (showAddForm || editingAddress) {
     return (
-      <SafeAreaView className="flex-1" style={{ backgroundColor: "#0f0f0f" }}>
+      <SafeAreaView className="flex-1 bg-slate-950">
         <View className="flex-row items-center px-4 pt-4 pb-2">
           <TouchableOpacity
             onPress={() => {
@@ -72,7 +72,7 @@ export default function Addresses({ onBack }: AddressesProps) {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#0f0f0f" }}>
+    <SafeAreaView className="flex-1 bg-slate-950">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
         <View className="flex-row items-center">

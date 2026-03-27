@@ -12,7 +12,7 @@ import type {
 const fetchProductReviews = async (
   productId: string,
   page = 1,
-  limit = 10
+  limit = 10,
 ): Promise<ReviewsResponse> => {
   const response = await axiosInstance.get(`/reviews/product/${productId}`, {
     params: { page, limit },

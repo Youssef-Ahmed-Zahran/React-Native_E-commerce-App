@@ -37,7 +37,7 @@ export const useAddToWishlist = () => {
     onMutate: async (productId: string) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.WISHLIST });
       const previousWishlist = queryClient.getQueryData<Product[]>(
-        QUERY_KEYS.WISHLIST
+        QUERY_KEYS.WISHLIST,
       );
 
       if (previousWishlist) {
@@ -67,13 +67,13 @@ export const useRemoveFromWishlist = () => {
     onMutate: async (productId: string) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.WISHLIST });
       const previousWishlist = queryClient.getQueryData<Product[]>(
-        QUERY_KEYS.WISHLIST
+        QUERY_KEYS.WISHLIST,
       );
 
       if (previousWishlist) {
         queryClient.setQueryData<Product[]>(
           QUERY_KEYS.WISHLIST,
-          previousWishlist.filter((p) => p._id !== productId)
+          previousWishlist.filter((p) => p._id !== productId),
         );
       }
 

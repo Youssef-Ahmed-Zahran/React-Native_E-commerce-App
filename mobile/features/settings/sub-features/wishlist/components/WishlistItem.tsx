@@ -1,7 +1,15 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { useRemoveFromWishlist } from "../slice/wishlistSlice";
+import { useAddToCart } from "../../../../cart/slice/cartSlice";
 import type { Product } from "../../../../../types/product.types";
 
 interface WishlistItemProps {
@@ -9,7 +17,9 @@ interface WishlistItemProps {
 }
 
 export default function WishlistItem({ product }: WishlistItemProps) {
-  const { mutate: removeFromWishlist, isPending } = useRemoveFromWishlist();
+  const { mutate: removeFromWishlist, isPending: isRemoving } =
+    useRemoveFromWishlist();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
   if (!product || product.price === undefined) {
     return null;
@@ -19,6 +29,17 @@ export default function WishlistItem({ product }: WishlistItemProps) {
 
   const handleRemove = () => {
     removeFromWishlist(product._id);
+  };
+
+  const handleAddToCart = () => {
+    addToCart(
+      { productId: product._id, quantity: 1 },
+      {
+        onSuccess: () => {
+          Alert.alert("Success", "Added to your cart");
+        },
+      },
+    );
   };
 
   return (
@@ -45,12 +66,12 @@ export default function WishlistItem({ product }: WishlistItemProps) {
           </Text>
           <TouchableOpacity
             onPress={handleRemove}
-            disabled={isPending}
+            disabled={isRemoving || isAddingToCart}
             activeOpacity={0.7}
             className="w-7 h-7 rounded-full items-center justify-center"
             style={{ backgroundColor: "rgba(239,68,68,0.15)" }}
           >
-            {isPending ? (
+            {isRemoving ? (
               <ActivityIndicator size="small" color="#f87171" />
             ) : (
               <Text className="text-red-400 text-xs">✕</Text>
@@ -58,9 +79,36 @@ export default function WishlistItem({ product }: WishlistItemProps) {
           </TouchableOpacity>
         </View>
 
-        <Text className="text-violet-400 font-bold text-base mt-1">
-          ${product.price.toFixed(2)}
-        </Text>
+        <View className="flex-row items-center justify-between mt-2">
+          <Text className="text-violet-400 font-bold text-base">
+            ${product.price.toFixed(2)}
+          </Text>
+          <TouchableOpacity
+            onPress={handleAddToCart}
+            disabled={isAddingToCart || product.stock === 0}
+            activeOpacity={0.7}
+            className="rounded-xl px-3 py-1.5 flex-row items-center border border-violet-500/30"
+            style={{ 
+              backgroundColor: product.stock === 0 ? "rgba(124,58,237,0.1)" : "rgba(124,58,237,0.2)",
+              opacity: product.stock === 0 ? 0.5 : 1
+            }}
+          >
+            {isAddingToCart ? (
+              <ActivityIndicator size="small" color="#a78bfa" />
+            ) : product.stock === 0 ? (
+              <Text className="text-violet-400 font-semibold text-xs mx-1">
+                Out of Stock
+              </Text>
+            ) : (
+              <>
+                <Ionicons name="cart" size={14} color="#a78bfa" />
+                <Text className="text-violet-400 font-semibold text-xs ml-1">
+                  Add to Cart
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
