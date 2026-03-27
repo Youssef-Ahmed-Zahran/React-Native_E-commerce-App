@@ -9,11 +9,10 @@ import {
   StatusBar,
   RefreshControl,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import CategoryList from "../components/CategoryList";
 import ProductCard from "../components/ProductCard";
-import { useProducts } from "../../product/slice/productSlice";
+import { useInfiniteProducts } from "../../product/slice/productSlice";
 import { useCurrentUser } from "../../auth/slice/authSlice";
 import useDebounce from "../../../hooks/useDebouncing";
 import type { Product } from "../../../types/product.types";
@@ -29,13 +28,21 @@ export default function Home() {
 
   const { data: user } = useCurrentUser();
 
-  const { data, isLoading, error } = useProducts({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteProducts({
     search: debouncedSearch,
     category: selectedCategory,
     limit: 20,
   });
 
-  const products = data?.products ?? [];
+  const products: Product[] = data?.pages.flatMap((p) => p.products) ?? [];
   const discountedProducts = products.filter(
     (p) => p.discountPrice !== undefined && p.discountPrice < p.price,
   );
@@ -43,15 +50,135 @@ export default function Home() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["products"] }),
+      refetch(),
       queryClient.invalidateQueries({ queryKey: ["categories"] }),
     ]);
     setRefreshing(false);
-  }, [queryClient]);
+  }, [refetch, queryClient]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderProduct = useCallback(
-    ({ item }: { item: Product }) => <ProductCard product={item} />,
+    ({ item }: { item: Product }) => (
+      <View style={{ width: "48%", marginBottom: 16 }}>
+        <ProductCard product={item} />
+      </View>
+    ),
     [],
+  );
+
+  const ListHeader = useCallback(
+    () => (
+      <>
+        {/* ── Categories ── */}
+        <CategoryList
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+
+        {/* ── Hot Deals Banner ── */}
+        {!isLoading && !error && discountedProducts.length > 0 && (
+          <View className="mb-6">
+            <View className="flex-row items-center justify-between px-5 mb-3">
+              <Text className="text-white text-lg font-bold">🔥 Hot Deals</Text>
+              <Text className="text-violet-400 text-sm font-semibold">
+                See all
+              </Text>
+            </View>
+            <FlatList
+              horizontal
+              data={discountedProducts}
+              keyExtractor={(item) => `deal-${item._id}`}
+              renderItem={({ item }) => <ProductCard product={item} />}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+              ItemSeparatorComponent={() => <View className="w-4" />}
+            />
+          </View>
+        )}
+
+        {/* ── Products Grid title ── */}
+        <View className="px-5 mb-3">
+          <Text className="text-white text-lg font-bold">
+            {selectedCategory ? "Filtered Products" : "All Products"}
+          </Text>
+        </View>
+
+        {/* Initial loading state */}
+        {isLoading && !refreshing && (
+          <View className="items-center justify-center py-10">
+            <ActivityIndicator size="large" color="#7c3aed" />
+          </View>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <View className="items-center justify-center py-10 px-6">
+            <View
+              className="w-20 h-20 rounded-3xl items-center justify-center mb-4"
+              style={{ backgroundColor: "rgba(239,68,68,0.15)" }}
+            >
+              <Text className="text-4xl">⚠️</Text>
+            </View>
+            <Text className="text-red-400 text-center font-semibold mb-1">
+              Something went wrong
+            </Text>
+            <Text className="text-slate-400 text-sm text-center mb-5">
+              {error.message || "Failed to load products"}
+            </Text>
+            <TouchableOpacity
+              onPress={onRefresh}
+              className="px-6 py-3 rounded-2xl"
+              style={{ backgroundColor: "rgba(124,58,237,0.2)" }}
+            >
+              <Text className="text-violet-400 font-semibold">Try again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedCategory, discountedProducts, isLoading, error, refreshing],
+  );
+
+  const ListFooter = useCallback(
+    () => (
+      <View className="py-6 items-center">
+        {isFetchingNextPage ? (
+          <ActivityIndicator size="small" color="#7c3aed" />
+        ) : !hasNextPage && products.length > 0 ? (
+          <Text className="text-slate-600 text-sm">
+            All products loaded ✓
+          </Text>
+        ) : null}
+      </View>
+    ),
+    [isFetchingNextPage, hasNextPage, products.length],
+  );
+
+  const ListEmpty = useCallback(
+    () =>
+      !isLoading && !error ? (
+        <View className="items-center justify-center py-10 px-6">
+          <View
+            className="w-20 h-20 rounded-3xl items-center justify-center mb-4"
+            style={{ backgroundColor: "rgba(124,58,237,0.15)" }}
+          >
+            <Text className="text-4xl">📦</Text>
+          </View>
+          <Text className="text-white text-lg font-bold mb-1">
+            No products found
+          </Text>
+          <Text className="text-slate-400 text-sm text-center">
+            Try a different search or category
+          </Text>
+        </View>
+      ) : null,
+    [isLoading, error],
   );
 
   return (
@@ -124,7 +251,21 @@ export default function Home() {
         </View>
       </View>
 
-      <ScrollView
+      {/* ── Main product FlatList (grid) ── */}
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item._id}
+        renderItem={renderProduct}
+        numColumns={2}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+        }}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={ListFooter}
+        ListEmptyComponent={ListEmpty}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -134,92 +275,8 @@ export default function Home() {
             colors={["#7c3aed"]}
           />
         }
-      >
-        {/* ── Categories ── */}
-        <CategoryList
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-        />
-
-        {/* ── Hot Deals Banner ── */}
-        {!isLoading && !error && discountedProducts.length > 0 && (
-          <View className="mb-6">
-            <View className="flex-row items-center justify-between px-5 mb-3">
-              <Text className="text-white text-lg font-bold">🔥 Hot Deals</Text>
-              <Text className="text-violet-400 text-sm font-semibold">
-                See all
-              </Text>
-            </View>
-            <FlatList
-              horizontal
-              data={discountedProducts}
-              keyExtractor={(item) => `deal-${item._id}`}
-              renderItem={renderProduct}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
-              ItemSeparatorComponent={() => <View className="w-4" />}
-            />
-          </View>
-        )}
-
-        {/* ── Products Grid ── */}
-        <View className="px-5 mb-3">
-          <Text className="text-white text-lg font-bold">
-            {selectedCategory ? "Filtered Products" : "All Products"}
-          </Text>
-        </View>
-
-        {isLoading && !refreshing ? (
-          <View className="items-center justify-center py-10">
-            <ActivityIndicator size="large" color="#7c3aed" />
-          </View>
-        ) : error ? (
-          <View className="items-center justify-center py-10 px-6">
-            <View
-              className="w-20 h-20 rounded-3xl items-center justify-center mb-4"
-              style={{ backgroundColor: "rgba(239,68,68,0.15)" }}
-            >
-              <Text className="text-4xl">⚠️</Text>
-            </View>
-            <Text className="text-red-400 text-center font-semibold mb-1">
-              Something went wrong
-            </Text>
-            <Text className="text-slate-400 text-sm text-center mb-5">
-              {error.message || "Failed to load products"}
-            </Text>
-            <TouchableOpacity
-              onPress={onRefresh}
-              className="px-6 py-3 rounded-2xl"
-              style={{ backgroundColor: "rgba(124,58,237,0.2)" }}
-            >
-              <Text className="text-violet-400 font-semibold">Try again</Text>
-            </TouchableOpacity>
-          </View>
-        ) : products.length === 0 ? (
-          <View className="items-center justify-center py-10 px-6">
-            <View
-              className="w-20 h-20 rounded-3xl items-center justify-center mb-4"
-              style={{ backgroundColor: "rgba(124,58,237,0.15)" }}
-            >
-              <Text className="text-4xl">📦</Text>
-            </View>
-            <Text className="text-white text-lg font-bold mb-1">
-              No products found
-            </Text>
-            <Text className="text-slate-400 text-sm text-center">
-              Try a different search or category
-            </Text>
-          </View>
-        ) : (
-          <View className="px-5 pb-8 flex-row flex-wrap justify-between">
-            {products.map((item) => (
-              <View key={item._id} className="mb-4">
-                <ProductCard product={item} />
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+        contentContainerStyle={{ paddingBottom: 8 }}
+      />
     </SafeAreaView>
   );
 }

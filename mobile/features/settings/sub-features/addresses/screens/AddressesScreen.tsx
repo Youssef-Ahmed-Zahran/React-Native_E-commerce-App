@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import { useDeleteAddress } from "../../edit-profile/slice/userSlice";
 import AddAddress from "../components/AddAddress";
 import type { Address } from "../../../../../types/user.types";
 
+const PAGE_SIZE = 5;
+
 interface AddressesProps {
   onBack: () => void;
 }
@@ -23,8 +25,11 @@ export default function Addresses({ onBack }: AddressesProps) {
   const { mutate: deleteAddress, isPending: isDeleting } = useDeleteAddress();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const addresses = user?.addresses ?? [];
+  const visibleAddresses = addresses.slice(0, visibleCount);
+  const hasMore = visibleCount < addresses.length;
 
   const handleDelete = (addressId: string) => {
     if (Platform.OS === "web") {
@@ -42,6 +47,27 @@ export default function Addresses({ onBack }: AddressesProps) {
       ]);
     }
   };
+
+  const handleEndReached = useCallback(() => {
+    if (hasMore) {
+      setVisibleCount((c) => Math.min(c + PAGE_SIZE, addresses.length));
+    }
+  }, [hasMore, addresses.length]);
+
+  const ListFooter = useCallback(
+    () => (
+      <View className="py-6 items-center">
+        {hasMore ? (
+          <ActivityIndicator size="small" color="#7c3aed" />
+        ) : addresses.length > PAGE_SIZE ? (
+          <Text className="text-slate-600 text-sm">
+            All addresses loaded ✓
+          </Text>
+        ) : null}
+      </View>
+    ),
+    [hasMore, addresses.length],
+  );
 
   if (showAddForm || editingAddress) {
     return (
@@ -98,8 +124,11 @@ export default function Addresses({ onBack }: AddressesProps) {
         </View>
       ) : (
         <FlatList
-          data={addresses}
+          data={visibleAddresses}
           keyExtractor={(item: Address) => item._id ?? item.street}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={ListFooter}
           renderItem={({ item }: { item: Address }) => (
             <View
               className="rounded-2xl border border-white/10 p-4 mb-3 mx-4"

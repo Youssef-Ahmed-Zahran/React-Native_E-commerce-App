@@ -9,21 +9,51 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import OrderCard from "../components/OrderCard";
-import { useOrders } from "../slice/orderSlice";
+import { useInfiniteOrders } from "../slice/orderSlice";
 
 interface OrdersProps {
   onBack: () => void;
 }
 
 export default function Orders({ onBack }: OrdersProps) {
-  const { data, isLoading, isError, error, refetch } = useOrders();
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteOrders();
   const [refreshing, setRefreshing] = useState(false);
+
+  const orders = data?.pages.flatMap((p) => p.orders) ?? [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   }, [refetch]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const ListFooter = useCallback(
+    () => (
+      <View className="py-6 items-center">
+        {isFetchingNextPage ? (
+          <ActivityIndicator size="small" color="#7c3aed" />
+        ) : !hasNextPage && orders.length > 0 ? (
+          <Text className="text-slate-600 text-sm">All orders loaded ✓</Text>
+        ) : null}
+      </View>
+    ),
+    [isFetchingNextPage, hasNextPage, orders.length],
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
@@ -64,10 +94,13 @@ export default function Orders({ onBack }: OrdersProps) {
         </View>
       ) : (
         <FlatList
-          data={data?.orders ?? []}
+          data={orders}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => <OrderCard order={item} />}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={ListFooter}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

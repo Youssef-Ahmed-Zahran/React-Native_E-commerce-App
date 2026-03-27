@@ -1,13 +1,49 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import axiosInstance from "../../../../../lib/axios";
 import { QUERY_KEYS } from "../../../../../lib/queryKeys";
 import type { Product } from "../../../../../types/product.types";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface WishlistPage {
+  products: Product[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  };
+}
 
 // *********************************** ((API Functions)) **************************************** //
 
 const fetchWishlist = async (): Promise<Product[]> => {
   const response = await axiosInstance.get("/wishlist");
   return response.data.data?.products || [];
+};
+
+const fetchWishlistPage = async (
+  page: number = 1,
+  limit: number = 10,
+): Promise<WishlistPage> => {
+  const response = await axiosInstance.get("/wishlist", {
+    params: { page, limit },
+  });
+  const data = response.data.data;
+  return {
+    products: data?.products || [],
+    pagination: data?.pagination ?? {
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: page,
+      limit,
+    },
+  };
 };
 
 const addToWishlistApi = async (productId: string): Promise<Product[]> => {
@@ -26,6 +62,22 @@ export const useWishlist = () => {
   return useQuery<Product[]>({
     queryKey: QUERY_KEYS.WISHLIST,
     queryFn: fetchWishlist,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useInfiniteWishlist = (limit: number = 10) => {
+  return useInfiniteQuery<WishlistPage>({
+    queryKey: [...QUERY_KEYS.WISHLIST, "infinite", { limit }],
+    queryFn: ({ pageParam = 1 }) =>
+      fetchWishlistPage(pageParam as number, limit),
+    getNextPageParam: (lastPage) => {
+      const { pagination } = lastPage;
+      return pagination.currentPage < pagination.totalPages
+        ? pagination.currentPage + 1
+        : undefined;
+    },
+    initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
   });
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,45 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WishlistItem from "../components/WishlistItem";
-import { useWishlist } from "../slice/wishlistSlice";
+import { useInfiniteWishlist } from "../slice/wishlistSlice";
 
 interface WishlistProps {
   onBack: () => void;
 }
 
 export default function Wishlist({ onBack }: WishlistProps) {
-  const { data: products, isLoading, isError, error } = useWishlist();
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteWishlist();
+
+  const products = data?.pages.flatMap((p) => p.products) ?? [];
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const ListFooter = useCallback(
+    () => (
+      <View className="py-6 items-center">
+        {isFetchingNextPage ? (
+          <ActivityIndicator size="small" color="#7c3aed" />
+        ) : !hasNextPage && products.length > 0 ? (
+          <Text className="text-slate-600 text-sm">
+            All wishlist items loaded ✓
+          </Text>
+        ) : null}
+      </View>
+    ),
+    [isFetchingNextPage, hasNextPage, products.length],
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
@@ -40,10 +71,13 @@ export default function Wishlist({ onBack }: WishlistProps) {
         </View>
       ) : (
         <FlatList
-          data={products ?? []}
+          data={products}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => <WishlistItem product={item} />}
           contentContainerStyle={{ paddingTop: 8 }}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={ListFooter}
           ListEmptyComponent={
             <View className="items-center justify-center mt-20">
               <Text className="text-slate-500 text-base">
