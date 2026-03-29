@@ -122,9 +122,8 @@ function AddProduct() {
                   id="name"
                   {...register("name")}
                   placeholder="e.g. Wireless Headphones..."
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
-                    errors.name ? "border-red-500" : "border-slate-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${errors.name ? "border-red-500" : "border-slate-200"
+                    }`}
                 />
                 {errors.name && (
                   <p className="text-red-500 text-sm mt-1">
@@ -146,9 +145,8 @@ function AddProduct() {
                   rows={3}
                   {...register("description")}
                   placeholder="Product description..."
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none ${
-                    errors.description ? "border-red-500" : "border-slate-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium resize-none ${errors.description ? "border-red-500" : "border-slate-200"
+                    }`}
                 />
                 {errors.description && (
                   <p className="text-red-500 text-sm mt-1">
@@ -172,9 +170,8 @@ function AddProduct() {
                     step="0.01"
                     {...register("price")}
                     placeholder="0.00"
-                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
-                      errors.price ? "border-red-500" : "border-slate-200"
-                    }`}
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${errors.price ? "border-red-500" : "border-slate-200"
+                      }`}
                   />
                   {errors.price && (
                     <p className="text-red-500 text-sm mt-1">
@@ -194,9 +191,8 @@ function AddProduct() {
                     id="stock"
                     {...register("stock")}
                     placeholder="0"
-                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${
-                      errors.stock ? "border-red-500" : "border-slate-200"
-                    }`}
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium ${errors.stock ? "border-red-500" : "border-slate-200"
+                      }`}
                   />
                   {errors.stock && (
                     <p className="text-red-500 text-sm mt-1">
@@ -218,20 +214,21 @@ function AddProduct() {
                   id="category"
                   {...register("category")}
                   disabled={categoriesLoading}
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer ${
-                    errors.category ? "border-red-500" : "border-slate-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-700 font-medium disabled:opacity-60 cursor-pointer ${errors.category ? "border-red-500" : "border-slate-200"
+                    }`}
                 >
                   <option value="">
                     {categoriesLoading
                       ? "Loading categories..."
                       : "Select a category"}
                   </option>
-                  {categoryData?.pages?.flatMap(page => page.categories).map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  {categoryData?.pages
+                    ?.flatMap((page) => page.categories)
+                    .map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
                 </select>
                 {errors.category && (
                   <p className="text-red-500 text-sm mt-1">
