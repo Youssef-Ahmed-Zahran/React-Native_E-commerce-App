@@ -9,14 +9,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import OrderCard from "../components/OrderCard";
 import { useInfiniteOrders } from "../slice/orderSlice";
+import { QUERY_KEYS } from "../../../../../lib/queryKeys";
 
 interface OrdersProps {
   onBack: () => void;
 }
 
 export default function Orders({ onBack }: OrdersProps) {
+  const queryClient = useQueryClient();
   const {
     data,
     isLoading,
@@ -28,6 +32,14 @@ export default function Orders({ onBack }: OrdersProps) {
     refetch,
   } = useInfiniteOrders();
   const [refreshing, setRefreshing] = useState(false);
+
+  // ── On focus: invalidate orders so admin status changes appear immediately ──
+  // staleTime is 0, so invalidation always triggers a background refetch.
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ORDERS });
+    }, [queryClient]),
+  );
 
   const orders = data?.pages.flatMap((p) => p.orders) ?? [];
 

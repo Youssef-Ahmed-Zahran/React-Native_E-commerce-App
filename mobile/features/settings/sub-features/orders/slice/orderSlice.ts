@@ -54,7 +54,7 @@ export const useOrders = (page: number = 1, limit: number = 10) => {
   return useQuery<OrdersResponse>({
     queryKey: [...QUERY_KEYS.ORDERS, { page, limit }],
     queryFn: () => fetchOrders(page, limit),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // always refetch on invalidation so admin status changes appear instantly
   });
 };
 
@@ -68,7 +68,7 @@ export const useInfiniteOrders = (limit: number = 10) => {
       return pagination.hasNextPage ? pagination.currentPage + 1 : undefined;
     },
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // always refetch on invalidation so admin status changes appear instantly
   });
 };
 
