@@ -16,7 +16,7 @@ export const getAllCategories = async (req, res, next) => {
 
     const totalCount = await Category.countDocuments(query);
     const categories = await Category.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .skip(skip)
       .limit(limit);
 

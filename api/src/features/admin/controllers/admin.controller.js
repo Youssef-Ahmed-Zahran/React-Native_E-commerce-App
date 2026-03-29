@@ -77,7 +77,7 @@ export const getAllProducts = async (req, res, next) => {
     const totalCount = await Product.countDocuments(query);
     const products = await Product.find(query)
       .populate("category", "name")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -218,7 +218,7 @@ export const getAllCategories = async (req, res, next) => {
 
     const totalCount = await Category.countDocuments(query);
     const categories = await Category.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -327,7 +327,7 @@ export const getAllOrders = async (req, res, next) => {
     const totalCount = await Order.countDocuments(query);
     const orders = await Order.find(query)
       .populate("user", "name email")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -415,7 +415,7 @@ export const getAllCustomers = async (req, res, next) => {
     const totalCount = await User.countDocuments(query);
     const customers = await User.find(query)
       .select("-password")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -459,7 +459,7 @@ export const getDashboardStats = async (req, res, next) => {
     // Get 5 most recent orders
     const recentOrders = await Order.find()
       .populate("user", "name email")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: 1 })
       .limit(5);
 
     res.status(200).json(

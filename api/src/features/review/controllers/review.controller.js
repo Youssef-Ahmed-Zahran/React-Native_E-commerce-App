@@ -56,7 +56,7 @@ export const getProductReviews = async (req, res, next) => {
     const [reviews, total] = await Promise.all([
       Review.find({ productId })
         .populate("userId", "name email")
-        .sort("-createdAt")
+        .sort({ createdAt: -1, _id: 1 })
         .skip(skip)
         .limit(limit),
       Review.countDocuments({ productId }),
@@ -101,7 +101,7 @@ export const getMyReviews = async (req, res, next) => {
     const [reviews, total] = await Promise.all([
       Review.find({ userId })
         .populate("productId", "name images price")
-        .sort("-createdAt")
+        .sort({ createdAt: -1, _id: 1 })
         .skip(skip)
         .limit(limit),
       Review.countDocuments({ userId }),

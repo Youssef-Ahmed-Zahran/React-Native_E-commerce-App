@@ -148,7 +148,7 @@ export const getUserOrders = async (req, res, next) => {
 
     const [orders, totalOrders] = await Promise.all([
       Order.find({ user: req.user._id })
-        .sort("-createdAt")
+        .sort({ createdAt: -1, _id: 1 })
         .skip(skip)
         .limit(limit),
       Order.countDocuments({ user: req.user._id }),
