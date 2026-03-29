@@ -15,6 +15,8 @@ import ProductCard from "../components/ProductCard";
 import { useInfiniteProducts } from "../../product/slice/productSlice";
 import { useCurrentUser } from "../../auth/slice/authSlice";
 import useDebounce from "../../../hooks/useDebouncing";
+import { useFocusEffect } from "expo-router";
+import { QUERY_KEYS } from "../../../lib/queryKeys";
 import type { Product } from "../../../types/product.types";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,14 +49,26 @@ export default function Home() {
     (p) => p.discountPrice !== undefined && p.discountPrice < p.price,
   );
 
+  // ── On focus: invalidate only the infinite product list ──────────────────
+  // We target the exact infinite key instead of the broad QUERY_KEYS.PRODUCTS
+  // prefix so we don't needlessly trash every individual product detail cache
+  // that is already fresh. React Query will background-refetch if stale (>30s).
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEYS.PRODUCTS, "infinite"],
+      });
+    }, [queryClient]),
+  );
+
+  // ── Pull-to-refresh: only refetch products ────────────────────────────────
+  // Categories have staleTime: 10 min — they self-refresh automatically;
+  // there's no need to force-invalidate them on every manual pull.
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([
-      refetch(),
-      queryClient.invalidateQueries({ queryKey: ["categories"] }),
-    ]);
+    await refetch();
     setRefreshing(false);
-  }, [refetch, queryClient]);
+  }, [refetch]);
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {

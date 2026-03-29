@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,10 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useProduct } from "../slice/productSlice";
+import { QUERY_KEYS } from "../../../lib/queryKeys";
 import { useAddToCart } from "../../cart/slice/cartSlice";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -27,9 +30,30 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 import { type ProductDetailsProps } from "../../../types/product.types";
 
 export default function ProductDetails({ productId }: ProductDetailsProps) {
+  const queryClient = useQueryClient();
   const { data: product, isLoading, error } = useProduct(productId);
   const { mutate: addToCart, isPending: isAdding } = useAddToCart();
   const insets = useSafeAreaInsets();
+
+  // ── On focus: conditionally invalidate this product's cache ───────────────
+  // We only invalidate if the cached entry is older than 30 s — this matches
+  // the staleTime in useProduct and prevents a redundant fetch when the user
+  // just navigated away and immediately back within the same session.
+  useFocusEffect(
+    useCallback(() => {
+      const queryKey = QUERY_KEYS.PRODUCT(productId);
+      const state = queryClient.getQueryState(queryKey);
+      const updatedAt = state?.dataUpdatedAt ?? 0;
+      const AGE_THRESHOLD_MS = 30 * 1000; // mirror of staleTime in useProduct
+
+      if (Date.now() - updatedAt > AGE_THRESHOLD_MS) {
+        // Cache is stale (or empty) — invalidate so React Query refetches
+        queryClient.invalidateQueries({ queryKey });
+      }
+      // If data is fresh (< 30s old) we do nothing — the existing cached
+      // product is displayed instantly without any network request
+    }, [productId, queryClient])
+  );
 
   const { data: wishlist } = useWishlist();
   const { mutate: addToWishlist, isPending: isAddingToWishlist } =
@@ -61,7 +85,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
       {
         onSuccess: () => Alert.alert("Success", "Added to cart!"),
         onError: (err: Error) => Alert.alert("Error", err.message),
-      },
+      }
     );
   };
 
@@ -109,6 +133,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
                 style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH * 1.33 }}
                 contentFit="cover"
                 transition={300}
+                cachePolicy="none"
               />
             ))}
           </ScrollView>
@@ -116,7 +141,10 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
           {/* Pagination dots (Overlaid) */}
           {product.images.length > 1 && (
             <View className="absolute bottom-4 left-0 right-0 flex-row items-center justify-center gap-2">
-              <View className="flex-row items-center justify-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+              <View
+                className="flex-row items-center justify-center gap-2 px-3 py-1.5 rounded-full"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+              >
                 {product.images.map((_, idx) => (
                   <View
                     key={idx}
@@ -219,14 +247,23 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
       {/* ── Sticky Bottom Action Bar ── */}
       <View
         className="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-slate-900/90"
-        style={{ paddingBottom: insets.bottom || 20, paddingTop: 16, paddingHorizontal: 20 }}
+        style={{
+          paddingBottom: insets.bottom || 20,
+          paddingTop: 16,
+          paddingHorizontal: 20,
+        }}
       >
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-slate-400 text-sm mb-0.5 font-medium">Total Price</Text>
+            <Text className="text-slate-400 text-sm mb-0.5 font-medium">
+              Total Price
+            </Text>
             <View className="flex-row items-end gap-2">
               <Text className="text-white text-3xl font-bold">
-                ${hasDiscount ? product.discountPrice!.toFixed(2) : product.price.toFixed(2)}
+                $
+                {hasDiscount
+                  ? product.discountPrice!.toFixed(2)
+                  : product.price.toFixed(2)}
               </Text>
               {hasDiscount && (
                 <Text className="text-slate-500 text-base font-medium line-through mb-1">
@@ -266,4 +303,3 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
     </View>
   );
 }
-

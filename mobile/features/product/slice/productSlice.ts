@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query"; // useQuery kept for useProduct (single product by ID)
 import axiosInstance from "../../../lib/axios";
 import { QUERY_KEYS } from "../../../lib/queryKeys";
 import type {
@@ -10,7 +10,7 @@ import type {
 // *********************************** ((API Functions)) **************************************** //
 
 const fetchProducts = async (
-  params: FetchProductsParams = {},
+  params: FetchProductsParams = {}
 ): Promise<ProductsResponse> => {
   const { page = 1, limit = 10, search = "", category = "" } = params;
   const response = await axiosInstance.get("/products", {
@@ -26,16 +26,8 @@ const fetchProductById = async (id: string): Promise<Product> => {
 
 // *********************************** ((React-Query Hooks)) **************************************** //
 
-export const useProducts = (params: FetchProductsParams = {}) => {
-  return useQuery<ProductsResponse>({
-    queryKey: [...QUERY_KEYS.PRODUCTS, params],
-    queryFn: () => fetchProducts(params),
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
 export const useInfiniteProducts = (
-  params: Omit<FetchProductsParams, "page"> = {},
+  params: Omit<FetchProductsParams, "page"> = {}
 ) => {
   const { limit = 10, search = "", category = "" } = params;
   return useInfiniteQuery<ProductsResponse>({
@@ -47,7 +39,12 @@ export const useInfiniteProducts = (
       return page < totalPages ? page + 1 : undefined;
     },
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000,
+    // staleTime: 0 — cache is always stale, so useFocusEffect's invalidateQueries
+    // triggers an immediate refetch every time the Home tab is focused.
+    // This ensures admin-added products appear on the very first return to Home.
+    // gcTime 5 min keeps paginated pages in memory during tab-switching.
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
   });
 };
 
@@ -56,6 +53,15 @@ export const useProduct = (id: string) => {
     queryKey: QUERY_KEYS.PRODUCT(id),
     queryFn: () => fetchProductById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    // 30 s staleTime: avoids duplicate network calls when the user opens the
+    // same product within a short burst; the useFocusEffect in ProductDetails
+    // will still force a refetch if the cache is older than 30 s
+    staleTime: 30 * 1000,
+    // 5 min: keep the cached product data around even after the screen
+    // is unmounted so it can be shown instantly on re-navigation
+    gcTime: 5 * 60 * 1000,
+    // true: triggers a background refetch when the component mounts and
+    // the data is stale — works together with useFocusEffect invalidation
+    refetchOnMount: true,
   });
 };
