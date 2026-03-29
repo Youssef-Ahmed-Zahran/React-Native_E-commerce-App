@@ -38,25 +38,33 @@ export default function Settings() {
 
       {/* ── Decorative Blob ── */}
       <View
-        className="absolute -top-32 -left-32 w-80 h-80 rounded-full opacity-10"
-        style={{ backgroundColor: "#7c3aed" }}
+        className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-[0.07]"
+        style={{ backgroundColor: "#8b5cf6" }}
+      />
+      <View
+        className="absolute top-24 -right-32 w-80 h-80 rounded-full opacity-[0.04]"
+        style={{ backgroundColor: "#06b6d4" }}
       />
 
       <ScrollView
-        className="flex-1 px-4 pt-4"
+        className="flex-1 px-5 pt-4"
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Text className="text-white font-bold text-3xl mb-6 mt-2 tracking-tight">
+        <Text className="text-white font-extrabold text-4xl mb-8 mt-2 tracking-tight">
           Settings
         </Text>
 
-        <Text className="text-slate-400 font-bold text-sm tracking-wider uppercase mb-3 ml-1">
-          My Account
-        </Text>
+        {/* Section Header */}
+        <View className="flex-row items-center mb-3 ml-1 mt-2">
+          <View className="w-1.5 h-4 bg-violet-500 rounded-full mr-2" />
+          <Text className="text-slate-400 font-bold text-xs tracking-[0.15em] uppercase">
+            My Account
+          </Text>
+        </View>
 
         {/* Profile Card */}
-        <ProfileHeader />
+        <ProfileHeader onPress={() => setActiveScreen("edit-profile")} />
 
         {/* Quick Actions Grid */}
         <QuickActionGrid
@@ -66,21 +74,39 @@ export default function Settings() {
           onWishlist={() => setActiveScreen("wishlist")}
         />
 
-        <View className="mt-4 mb-3 ml-1">
-          <Text className="text-slate-400 font-bold text-sm tracking-wider uppercase">
+        {/* Section Header */}
+        <View className="flex-row items-center mb-3 ml-1 mt-6">
+          <View className="w-1.5 h-4 bg-emerald-500 rounded-full mr-2" />
+          <Text className="text-slate-400 font-bold text-xs tracking-[0.15em] uppercase">
             App Preferences
           </Text>
         </View>
 
         {/* Settings Rows */}
-        <SettingsRow icon="🔔" label="Notifications" />
-        <SettingsRow icon="🔒" label="Privacy" />
+        <SettingsRow
+          icon="notifications"
+          iconColor="#3b82f6" // blue
+          iconBgColor="rgba(59, 130, 246, 0.15)"
+          label="Notifications"
+        />
+        <SettingsRow
+          icon="lock-closed"
+          iconColor="#f59e0b" // amber
+          iconBgColor="rgba(245, 158, 11, 0.15)"
+          label="Privacy"
+        />
+        <SettingsRow
+          icon="color-palette"
+          iconColor="#ec4899" // pink
+          iconBgColor="rgba(236, 72, 153, 0.15)"
+          label="Appearance"
+        />
 
         {/* Sign Out */}
         <SignOutButton />
 
         {/* Bottom Spacer */}
-        <View className="h-8" />
+        <View className="h-12" />
       </ScrollView>
     </SafeAreaView>
   );

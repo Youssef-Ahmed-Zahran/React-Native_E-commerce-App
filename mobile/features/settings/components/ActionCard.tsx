@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface ActionCardProps {
   icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -21,18 +22,40 @@ export default function ActionCard({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className="flex-1 rounded-3xl border border-white/10 p-4 m-1.5 items-center justify-center"
-      style={{ backgroundColor: "rgba(255,255,255,0.04)", minHeight: 110 }}
+      style={{ flex: 1, borderRadius: 24, overflow: "hidden", minHeight: 110 }}
     >
-      <View
-        className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
-        style={{ backgroundColor: accentColor }}
+      <LinearGradient
+        colors={["rgba(255,255,255,0.07)", "rgba(255,255,255,0.02)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          flex: 1,
+          padding: 16,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.07)",
+        }}
       >
-        <Ionicons name={icon} size={24} color={iconColor} />
-      </View>
-      <Text className="text-white font-semibold text-sm text-center">
-        {label}
-      </Text>
+        <View
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 16,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 12,
+            backgroundColor: accentColor,
+          }}
+        >
+          <Ionicons name={icon} size={22} color={iconColor} />
+        </View>
+        <Text style={{ color: "#e2e8f0", fontWeight: "700", fontSize: 13, textAlign: "center", letterSpacing: 0.3 }}>
+          {label}
+        </Text>
+      </LinearGradient>
     </TouchableOpacity>
   );
 }
+

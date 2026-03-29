@@ -8,6 +8,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import OrderCard from "../components/OrderCard";
 import { useInfiniteOrders } from "../slice/orderSlice";
 
@@ -48,7 +49,10 @@ export default function Orders({ onBack }: OrdersProps) {
         {isFetchingNextPage ? (
           <ActivityIndicator size="small" color="#7c3aed" />
         ) : !hasNextPage && orders.length > 0 ? (
-          <Text className="text-slate-600 text-sm">All orders loaded ✓</Text>
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="checkmark-circle" size={14} color="#475569" />
+            <Text className="text-slate-600 text-sm">All orders loaded</Text>
+          </View>
         ) : null}
       </View>
     ),
@@ -57,26 +61,44 @@ export default function Orders({ onBack }: OrdersProps) {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
+      {/* Decorative blob */}
+      <View
+        className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-[0.05]"
+        style={{ backgroundColor: "#c084fc" }}
+      />
+
       {/* Header */}
-      <View className="flex-row justify-between items-center px-4 pt-4 pb-2">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-            <Text className="text-violet-400 text-base">← Back</Text>
+      <View className="flex-row justify-between items-center px-5 pt-5 pb-4">
+        <View className="flex-row items-center gap-3">
+          <TouchableOpacity
+            onPress={onBack}
+            activeOpacity={0.7}
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+          >
+            <Ionicons name="chevron-back" size={22} color="#a78bfa" />
           </TouchableOpacity>
-          <Text className="text-white font-bold text-lg ml-4">My Orders</Text>
+          <View>
+            <Text className="text-white font-extrabold text-2xl tracking-tight">
+              My Orders
+            </Text>
+            <Text className="text-slate-500 text-xs mt-0.5">
+              {orders.length > 0 ? `${orders.length} order${orders.length !== 1 ? "s" : ""}` : "Track your purchases"}
+            </Text>
+          </View>
         </View>
 
         {/* Manual refresh button */}
         <TouchableOpacity
           onPress={onRefresh}
           disabled={refreshing}
-          className="items-center justify-center w-10 h-10 rounded-2xl"
-          style={{ backgroundColor: "rgba(124,58,237,0.15)" }}
+          className="w-10 h-10 rounded-full items-center justify-center"
+          style={{ backgroundColor: "rgba(124,58,237,0.12)" }}
         >
           {refreshing ? (
             <ActivityIndicator size="small" color="#7c3aed" />
           ) : (
-            <Text className="text-violet-400 text-xl">↻</Text>
+            <Ionicons name="refresh" size={20} color="#a78bfa" />
           )}
         </TouchableOpacity>
       </View>
@@ -87,8 +109,9 @@ export default function Orders({ onBack }: OrdersProps) {
           <ActivityIndicator size="large" color="#7c3aed" />
         </View>
       ) : isError ? (
-        <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-red-400 text-center">
+        <View className="flex-1 items-center justify-center px-8 gap-3">
+          <Ionicons name="cloud-offline-outline" size={48} color="#475569" />
+          <Text className="text-slate-400 text-center text-base">
             {error?.message ?? "Failed to load orders."}
           </Text>
         </View>
@@ -110,8 +133,17 @@ export default function Orders({ onBack }: OrdersProps) {
             />
           }
           ListEmptyComponent={
-            <View className="items-center justify-center mt-20">
-              <Text className="text-slate-500 text-base">No orders yet.</Text>
+            <View className="flex-1 items-center justify-center mt-24 gap-4">
+              <View
+                className="w-20 h-20 rounded-3xl items-center justify-center"
+                style={{ backgroundColor: "rgba(124,58,237,0.1)" }}
+              >
+                <Ionicons name="receipt-outline" size={36} color="#6d28d9" />
+              </View>
+              <Text className="text-white font-bold text-lg">No orders yet</Text>
+              <Text className="text-slate-500 text-sm text-center px-8">
+                Your order history will appear here once you make a purchase.
+              </Text>
             </View>
           }
         />

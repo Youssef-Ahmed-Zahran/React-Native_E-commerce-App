@@ -16,9 +16,9 @@ export default function QuickActionGrid({
   onWishlist,
 }: QuickActionGridProps) {
   return (
-    <View className="mb-4">
+    <View className="mb-6 flex-col gap-3 pt-1">
       {/* Row 1 */}
-      <View className="flex-row">
+      <View className="flex-row gap-3">
         <ActionCard
           icon="person"
           iconColor="#60a5fa"
@@ -36,7 +36,7 @@ export default function QuickActionGrid({
       </View>
 
       {/* Row 2 */}
-      <View className="flex-row">
+      <View className="flex-row gap-3">
         <ActionCard
           icon="location"
           iconColor="#34d399"

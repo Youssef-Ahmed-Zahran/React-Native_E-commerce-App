@@ -1,6 +1,7 @@
 import React from "react";
-import { Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useLogoutUser } from "../../auth/slice/authSlice";
 
 export default function SignOutButton() {
@@ -29,13 +30,18 @@ export default function SignOutButton() {
       onPress={handleSignOut}
       disabled={isPending}
       activeOpacity={0.7}
-      className="rounded-2xl border border-red-500/20 py-4 mt-4 items-center justify-center"
-      style={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+      className="rounded-2xl border border-red-500/20 py-4 mt-8 flex-row items-center justify-center gap-2"
+      style={{ backgroundColor: "rgba(153,27,27,0.15)" }} // Dark red hue
     >
       {isPending ? (
         <ActivityIndicator size="small" color="#f87171" />
       ) : (
-        <Text className="text-red-400 font-bold text-base">Sign Out</Text>
+        <>
+          <Ionicons name="log-out-outline" size={20} color="#f87171" />
+          <Text className="text-red-400 font-bold text-base tracking-wide">
+            Sign Out
+          </Text>
+        </>
       )}
     </TouchableOpacity>
   );

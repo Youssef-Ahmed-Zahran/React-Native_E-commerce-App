@@ -1,26 +1,32 @@
 import React from "react";
-import { View, TouchableOpacity, Text, SafeAreaView } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import ProductDetails from "../components/ProductDetails";
 
 export default function Product() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-950">
-      {/* ── Back Button ── */}
-      <View className="px-4 py-3">
+    <View className="flex-1 bg-slate-950">
+      <ProductDetails productId={id!} />
+
+      {/* ── Floating Back Button ── */}
+      <View
+        className="absolute left-4 z-50 shadow-md"
+        style={{ top: insets.top + 10 }}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 rounded-full items-center justify-center border border-white/10"
-          style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-          activeOpacity={0.7}
+          className="w-11 h-11 rounded-full items-center justify-center"
+          style={{ backgroundColor: "rgba(15, 23, 42, 0.6)" }} // semi-transparent slate-900
+          activeOpacity={0.8}
         >
-          <Text className="text-white text-lg">←</Text>
+          <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
       </View>
-
-      <ProductDetails productId={id!} />
-    </SafeAreaView>
+    </View>
   );
 }
