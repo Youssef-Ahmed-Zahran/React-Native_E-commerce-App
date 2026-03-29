@@ -19,6 +19,6 @@ export const useCategories = () => {
   return useQuery<CategoriesResponse>({
     queryKey: QUERY_KEYS.CATEGORIES,
     queryFn: fetchCategories,
-    staleTime: 10 * 60 * 1000, // 10 minutes — categories rarely change
+    staleTime: 0, // always refetch on invalidation so admin changes appear instantly
   });
 };

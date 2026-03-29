@@ -49,14 +49,18 @@ export default function Home() {
     (p) => p.discountPrice !== undefined && p.discountPrice < p.price,
   );
 
-  // ── On focus: invalidate only the infinite product list ──────────────────
-  // We target the exact infinite key instead of the broad QUERY_KEYS.PRODUCTS
-  // prefix so we don't needlessly trash every individual product detail cache
-  // that is already fresh. React Query will background-refetch if stale (>30s).
+  // ── On focus: invalidate the infinite product list + categories ──────────
+  // Products: target the exact infinite key to avoid trashing per-product caches.
+  // Categories: staleTime is 0, so invalidating here forces an immediate
+  // background-refetch — admin changes (renames, new/deleted categories) will
+  // be visible as soon as the user opens or returns to the Home tab.
   useFocusEffect(
     useCallback(() => {
       queryClient.invalidateQueries({
         queryKey: [...QUERY_KEYS.PRODUCTS, "infinite"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.CATEGORIES,
       });
     }, [queryClient]),
   );
